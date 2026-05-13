@@ -213,6 +213,157 @@ select option{background:var(--panel2);}
 ::-webkit-scrollbar{width:3px;height:3px;}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border-glow);border-radius:2px;}
+
+/* ═══════════════════════════════════════════════════════
+   RESPONSIVE MÓVIL
+═══════════════════════════════════════════════════════ */
+@media (max-width: 768px) {
+  /* Layout principal */
+  #app { flex-direction: column; height: 100dvh; overflow: hidden; }
+
+  /* Sidebar → barra inferior */
+  #sidebar {
+    width: 100% !important;
+    min-width: unset !important;
+    height: auto;
+    border-right: none;
+    border-top: 1px solid var(--border);
+    flex-direction: row;
+    overflow-x: auto;
+    overflow-y: hidden;
+    order: 2;
+    padding: 0;
+    flex-shrink: 0;
+    -webkit-overflow-scrolling: touch;
+  }
+  #sidebar::after { display: none; }
+  .sb-logo { display: none; }
+  .nav-sec { display: flex; flex-direction: row; padding: 0; flex-shrink: 0; }
+  .nav-lbl { display: none; }
+  .nav-item {
+    flex-direction: column;
+    gap: 2px;
+    padding: 6px 8px;
+    font-size: 8px;
+    letter-spacing: 0;
+    white-space: nowrap;
+    border-left: none !important;
+    border-top: 2px solid transparent;
+    min-width: 50px;
+    justify-content: center;
+    align-items: center;
+    text-align: center;
+    position: relative;
+  }
+  .nav-item.active { border-left: none !important; border-top: 2px solid var(--neon); background: var(--panel2); }
+  .nav-icon { font-size: 17px; }
+  .badge { font-size: 8px; padding: 1px 3px; }
+
+  /* Main */
+  #main { flex: 1; overflow-y: auto; order: 1; min-height: 0; }
+
+  /* Topbar */
+  #topbar {
+    height: auto !important;
+    padding: 6px 10px !important;
+    gap: 6px !important;
+    flex-wrap: wrap;
+  }
+  .topbar-title { font-size: 15px !important; flex-shrink: 0; }
+  .topbar-search {
+    flex: 1;
+    min-width: 120px;
+    order: 3;
+    width: 100%;
+  }
+  .topbar-search input { font-size: 13px !important; }
+  .topbar-actions {
+    display: flex;
+    gap: 5px;
+    flex-shrink: 0;
+  }
+  .topbar-actions .btn {
+    padding: 5px 8px !important;
+    font-size: 11px !important;
+    white-space: nowrap;
+  }
+
+  /* Panel de búsqueda global */
+  #global-search-panel { left: 0 !important; top: auto !important; }
+
+  /* Dashboard stats */
+  #dash-plats-view {
+    grid-template-columns: repeat(2, 1fr) !important;
+    gap: 8px !important;
+    padding: 10px !important;
+  }
+
+  /* Tablas directorio — números de teléfono no se cortan */
+  .data-table { font-size: 12px; table-layout: fixed; width: 100%; }
+  .data-table th, .data-table td {
+    padding: 7px 5px;
+    word-break: break-word;
+    overflow-wrap: break-word;
+  }
+  /* Ocultar columnas menos críticas en móvil */
+  .data-table th:nth-child(3),
+  .data-table td:nth-child(3),
+  .data-table th:nth-child(4),
+  .data-table td:nth-child(4) { display: none; }
+
+  /* Perfiles grid */
+  .profs-grid, .email-grid {
+    grid-template-columns: 1fr !important;
+    padding: 8px !important;
+    gap: 8px !important;
+  }
+
+  /* Cred grid cuentas completas */
+  .cred-grid { grid-template-columns: 1fr 1fr !important; }
+
+  /* Botones perfil */
+  .prof-card-ft { flex-wrap: wrap; gap: 4px; }
+  .btn-icon-sm { width: 30px !important; height: 30px !important; }
+
+  /* Modales */
+  .modal {
+    width: 98vw !important;
+    max-width: 98vw !important;
+    max-height: 92dvh !important;
+    margin: 1vw !important;
+  }
+  .modal-body { padding: 10px !important; }
+  .fr { flex-direction: column !important; gap: 8px !important; }
+  .fr .fg { width: 100% !important; }
+  .pslot { padding: 10px; }
+
+  /* Tabs */
+  .tabs { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+  .tab { white-space: nowrap; padding: 8px 12px; font-size: 11px; }
+
+  /* Finanzas */
+  #finance-stats { grid-template-columns: 1fr 1fr !important; padding: 8px !important; }
+
+  /* Acc header */
+  .acc-hd { flex-wrap: wrap; gap: 4px; padding: 8px !important; }
+  .acc-email { font-size: 12px !important; max-width: 160px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+
+  /* Btn general en móvil */
+  .btn { padding: 7px 11px; font-size: 13px; }
+  .btn-sm { padding: 4px 8px; font-size: 11px; }
+
+  /* Historial */
+  #history-list > div { flex-direction: column; gap: 6px; }
+
+  /* Portapapeles: asegurar que funcione en móvil */
+  .prof-v-click { cursor: pointer; -webkit-tap-highlight-color: rgba(0,180,255,0.2); }
+}
+
+@media (max-width: 380px) {
+  .nav-item { min-width: 44px; padding: 6px 5px; font-size: 7px; }
+  .nav-icon { font-size: 15px; }
+  .topbar-actions .btn { padding: 4px 6px !important; font-size: 10px !important; }
+}
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -2238,13 +2389,13 @@ function renderAlerts(tab){
 function fireAlertMsg(idx, mode){
   var d=window._alertMsgs&&window._alertMsgs[idx];
   if(!d)return;
-  navigator.clipboard.writeText(d.msg).catch(function(){});
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(d.msg).catch(function(){mobileCopyFallback(d.msg);})}else{mobileCopyFallback(d.msg);}
   if(mode===0&&d.waUrl) window.open(d.waUrl,'_blank');
   else if(mode===1&&d.tgUrl) window.open(d.tgUrl,'_blank');
   toast('Mensaje copiado — pega en el chat','info');
 }
 function sendAlertMsg(msg, waUrl, tgUrl){
-  navigator.clipboard.writeText(msg).catch(function(){});
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(msg).catch(function(){mobileCopyFallback(msg);})}else{mobileCopyFallback(msg);}
   if(waUrl) window.open(waUrl,'_blank');
   else if(tgUrl) window.open(tgUrl,'_blank');
   toast('Mensaje copiado al portapapeles','info');
@@ -2323,6 +2474,20 @@ function buildEmailMsg(a, p, pr, duration){
   lines.push('1. Ante cualquier inconveniente avisar lo antes posible, solo se suman los días perdidos a partir del día del reporte.');
   return lines.join('\n');
 }
+function mobileCopyFallback(txt){
+  var ta=document.createElement('textarea');
+  ta.value=txt;
+  ta.style.position='fixed';
+  ta.style.opacity='0';
+  ta.style.top='0';
+  ta.style.left='0';
+  document.body.appendChild(ta);
+  ta.focus();
+  ta.select();
+  try{ document.execCommand('copy'); toast('Datos copiados','success'); }
+  catch(e){ toast('No se pudo copiar','warn'); }
+  document.body.removeChild(ta);
+}
 function doCopy(accId, profIdx, duration){
   var a=DB.accounts.find(function(x){return x.id===accId;});
   if(!a)return;
@@ -2335,7 +2500,11 @@ function doCopy(accId, profIdx, duration){
     var pr=(a.type==='profile'&&profIdx!=='')?a.profiles[parseInt(profIdx)]:null;
     txt=buildMsg(a,p,pr,duration||'30');
   }
-  navigator.clipboard.writeText(txt).then(function(){toast('Datos copiados','success');});
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){toast('Datos copiados','success');}).catch(function(){
+      mobileCopyFallback(txt);
+    });
+  } else { mobileCopyFallback(txt); }
 }
 function waEncode(txt){
   var result = '';
@@ -2348,7 +2517,7 @@ function waEncode(txt){
   return result;
 }
 function closeWAModal(){ var m=document.getElementById('modal-wa-send'); if(m) m.classList.remove('open'); }
-function copyWAText(){ var t=document.getElementById('wa-send-txt'); if(t) navigator.clipboard.writeText(t.textContent).then(function(){toast('Copiado','success');}); }
+function copyWAText(){ var t=document.getElementById('wa-send-txt'); if(!t)return; var txt=t.textContent; if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).then(function(){toast('Copiado','success');}).catch(function(){mobileCopyFallback(txt);});}else{mobileCopyFallback(txt);} }
 function buildWAModalHTML(){
   return '<div class="modal" style="max-width:480px;">'+
     '<div class="modal-hd"><div class="modal-title">Enviar mensaje</div>'+
@@ -2374,8 +2543,8 @@ function openTG(telegram, txt){
     url = 'https://t.me/' + handle.replace(/^@/,'');
   }
   // Mostrar el mismo modal pero solo con botón Telegram
-  navigator.clipboard.writeText(txt).then(function(){ showSendModal(txt, '', url); })
-    .catch(function(){ showSendModal(txt, '', url); });
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){mobileCopyFallback(txt);});}else{mobileCopyFallback(txt);}
+  showSendModal(txt, '', url);
 }
 function doTG(telegram,accId,profIdx,duration){
   var a=DB.accounts.find(function(x){return x.id===accId;});
@@ -2410,8 +2579,8 @@ function openWA(phone, txt, tgHandle){
     var h = tgHandle.trim();
     tgUrl = (h.startsWith('+')||/^[0-9]/.test(h)) ? 'https://t.me/+'+h.replace(/[^0-9]/g,'') : 'https://t.me/'+h.replace(/^@/,'');
   }
-  navigator.clipboard.writeText(txt).then(function(){ showSendModal(txt, waUrl, tgUrl); })
-    .catch(function(){ showSendModal(txt, waUrl, tgUrl); });
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(txt).catch(function(){mobileCopyFallback(txt);});}else{mobileCopyFallback(txt);}
+  showSendModal(txt, waUrl, tgUrl);
 }
 
 function doWA(phone,accId,profIdx,duration){
@@ -2431,10 +2600,8 @@ function doWA(phone,accId,profIdx,duration){
   openWA(phone, txt, tg||undefined);
 }
 function copyVal(val,el){
-  navigator.clipboard.writeText(val).then(function(){
-    var orig=el.textContent;el.textContent='Copiado';el.style.color='var(--success)';
-    setTimeout(function(){el.textContent=orig;el.style.color='';},1200);
-  });
+  var cb=function(){var orig=el.textContent;el.textContent='Copiado';el.style.color='var(--success)';setTimeout(function(){el.textContent=orig;el.style.color='';},1200);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(val).then(cb).catch(function(){mobileCopyFallback(val);cb();});}else{mobileCopyFallback(val);cb();}
 }
 
 // HELPERS
@@ -2878,11 +3045,9 @@ function clearGlobalSearch(){
 }
 // Close search panel when clicking outside
 function cvClick(el){
-  var val = el.getAttribute('data-val');
-  navigator.clipboard.writeText(val).then(function(){
-    var orig=el.textContent; el.textContent='Copiado'; el.style.color='var(--success)';
-    setTimeout(function(){el.textContent=orig;el.style.color='';},1200);
-  });
+  var val=el.getAttribute('data-val');
+  var cb=function(){var orig=el.textContent;el.textContent='Copiado';el.style.color='var(--success)';setTimeout(function(){el.textContent=orig;el.style.color='';},1200);};
+  if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(val).then(cb).catch(function(){mobileCopyFallback(val);cb();});}else{mobileCopyFallback(val);cb();}
 }
 
 function updateTrashCount(){
@@ -3192,7 +3357,9 @@ function doPassChange(accId, profIdx){
   var _pcAcc=DB.accounts.find(function(x){return x.id===accId;});
   var _pcP=_pcAcc?DB.platforms.find(function(x){return x.id===_pcAcc.platformId;})||{name:'?'}:{name:'?'};
   addHistory('CAMBIO_CLAVE','Aviso cambio de clave enviado: '+pr.name,'Cuenta: '+(_pcAcc?_pcAcc.email:'')+' | Plataforma: '+_pcP.name);
-  navigator.clipboard.writeText(txt).catch(function(){});
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).catch(function(){mobileCopyFallback(txt);});
+  } else { mobileCopyFallback(txt); }
   showSendModal(txt, waUrl, tgUrl);
 }
 function gsAction(el, mode){
