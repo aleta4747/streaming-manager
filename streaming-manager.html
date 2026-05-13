@@ -2386,18 +2386,29 @@ function renderAlerts(tab){
     '</div>';
   }).join('');
 }
+function openExternal(url){
+  // En PWA standalone, usar location para forzar apertura externa
+  var a=document.createElement('a');
+  a.href=url;
+  a.target='_blank';
+  a.rel='noreferrer noopener';
+  a.style.display='none';
+  document.body.appendChild(a);
+  a.click();
+  setTimeout(function(){document.body.removeChild(a);},100);
+}
 function fireAlertMsg(idx, mode){
   var d=window._alertMsgs&&window._alertMsgs[idx];
   if(!d)return;
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(d.msg).catch(function(){mobileCopyFallback(d.msg);})}else{mobileCopyFallback(d.msg);}
-  if(mode===0&&d.waUrl) window.open(d.waUrl,'_blank');
-  else if(mode===1&&d.tgUrl) window.open(d.tgUrl,'_blank');
+  if(mode===0&&d.waUrl) openExternal(d.waUrl);
+  else if(mode===1&&d.tgUrl) openExternal(d.tgUrl);
   toast('Mensaje copiado — pega en el chat','info');
 }
 function sendAlertMsg(msg, waUrl, tgUrl){
   if(navigator.clipboard&&navigator.clipboard.writeText){navigator.clipboard.writeText(msg).catch(function(){mobileCopyFallback(msg);})}else{mobileCopyFallback(msg);}
-  if(waUrl) window.open(waUrl,'_blank');
-  else if(tgUrl) window.open(tgUrl,'_blank');
+  if(waUrl) openExternal(waUrl);
+  else if(tgUrl) openExternal(tgUrl);
   toast('Mensaje copiado al portapapeles','info');
 }
 
@@ -2566,8 +2577,8 @@ function showSendModal(txt, waUrl, tgUrl){
   }
   document.getElementById('wa-send-txt').textContent = txt;
   var btnsEl = document.getElementById('wa-send-btns');
-  var waBtn = waUrl ? '<a href="'+waUrl+'" target="_blank" class="btn btn-wa" style="text-decoration:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;padding:7px 16px;display:inline-flex;align-items:center;gap:6px;" onclick="closeWAModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.122 1.527 5.854L.057 23.928a.5.5 0 0 0 .612.612l6.074-1.47A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 0 1-5.073-1.386l-.364-.214-3.763.91.926-3.67-.236-.374A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> WhatsApp</a>' : '';
-  var tgBtn = tgUrl ? '<a href="'+tgUrl+'" target="_blank" class="btn btn-tg" style="text-decoration:none;font-family:Nunito,sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;padding:7px 16px;display:inline-flex;align-items:center;gap:6px;" onclick="closeWAModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/></svg> Telegram</a>' : '';
+  var waBtn = waUrl ? '<button class="btn btn-wa" style="font-family:Nunito,sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;padding:7px 16px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;" onclick="openExternal(\''+waUrl+'\');closeWAModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347z"/><path d="M12 0C5.373 0 0 5.373 0 12c0 2.126.555 4.122 1.527 5.854L.057 23.928a.5.5 0 0 0 .612.612l6.074-1.47A11.94 11.94 0 0 0 12 24c6.627 0 12-5.373 12-12S18.627 0 12 0zm0 22a9.944 9.944 0 0 1-5.073-1.386l-.364-.214-3.763.91.926-3.67-.236-.374A9.96 9.96 0 0 1 2 12C2 6.477 6.477 2 12 2s10 4.477 10 10-4.477 10-10 10z"/></svg> WhatsApp</button>' : '';
+  var tgBtn = tgUrl ? '<button class="btn btn-tg" style="font-family:Nunito,sans-serif;font-size:13px;font-weight:800;text-transform:uppercase;letter-spacing:0.3px;padding:7px 16px;display:inline-flex;align-items:center;gap:6px;cursor:pointer;" onclick="openExternal(\''+tgUrl+'\');closeWAModal()"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M12 0C5.373 0 0 5.373 0 12s5.373 12 12 12 12-5.373 12-12S18.627 0 12 0zm5.562 8.248-1.97 9.289c-.145.658-.537.818-1.084.508l-3-2.21-1.447 1.394c-.16.16-.295.295-.605.295l.213-3.053 5.56-5.023c.242-.213-.054-.333-.373-.12l-6.871 4.326-2.962-.924c-.643-.204-.657-.643.136-.953l11.57-4.461c.537-.194 1.006.131.833.932z"/></svg> Telegram</button>' : '';
   btnsEl.innerHTML = waBtn + tgBtn;
   modal.classList.add('open');
 }
