@@ -853,7 +853,7 @@ function driveSignIn(){
         document.getElementById('drive-auth-section').style.display='none';
         document.getElementById('drive-sync-section').style.display='';
         var info=document.getElementById('drive-user-info');
-        if(info) info.textContent='✓ Conectado como: '+u.email;
+        if(info) info.textContent='✓ Conectado como: '+(u.email||u.name||u.sub||'tu cuenta de Google');
         driveSetStatus('Listo para sincronizar');
       });
     }
