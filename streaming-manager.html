@@ -2387,7 +2387,15 @@ function renderAlerts(tab){
   }).join('');
 }
 function openExternal(url){
-  // En PWA standalone, usar location para forzar apertura externa
+  // Deep links para apps nativas en móvil
+  var isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  if(isMobile&&url.indexOf('wa.me')>-1){
+    var phone=url.replace('https://wa.me/','').replace(/[^0-9+]/g,'');
+    url='whatsapp://send?phone='+phone;
+  }
+  if(isMobile&&url.indexOf('t.me')>-1){
+    url=url.replace('https://t.me/','tg://resolve?domain=').replace('tg://resolve?domain=+','tg://resolve?phone=+');
+  }
   var a=document.createElement('a');
   a.href=url;
   a.target='_blank';
@@ -2395,7 +2403,7 @@ function openExternal(url){
   a.style.display='none';
   document.body.appendChild(a);
   a.click();
-  setTimeout(function(){document.body.removeChild(a);},100);
+  setTimeout(function(){document.body.removeChild(a);},200);
 }
 function fireAlertMsg(idx, mode){
   var d=window._alertMsgs&&window._alertMsgs[idx];
@@ -2584,7 +2592,9 @@ function showSendModal(txt, waUrl, tgUrl){
 }
 function openWA(phone, txt, tgHandle){
   var clean = phone.replace(/[^0-9]/g,'');
-  var waUrl = 'https://wa.me/' + clean;
+  // Usar deep link whatsapp:// en móvil para abrir directamente la app
+  var isMobile=/Android|iPhone|iPad/i.test(navigator.userAgent);
+  var waUrl = isMobile ? 'whatsapp://send?phone='+clean : 'https://wa.me/' + clean;
   var tgUrl = '';
   if(tgHandle){
     var h = tgHandle.trim();
