@@ -2,7 +2,13 @@
 <html lang="es">
 <head>
 <meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="apple-mobile-web-app-title" content="StreamMgr">
+<meta name="theme-color" content="#050810">
+<link rel="manifest" href="manifest.json">
 <title>Streaming AletaG8</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
 <style>
@@ -208,6 +214,8 @@ select option{background:var(--panel2);}
 ::-webkit-scrollbar-track{background:var(--bg);}
 ::-webkit-scrollbar-thumb{background:var(--border-glow);border-radius:2px;}
 </style>
+<script src="https://accounts.google.com/gsi/client" async defer></script>
+<script src="https://apis.google.com/js/api.js" async defer></script>
 </head>
 <body>
 <div id="app">
@@ -401,6 +409,24 @@ select option{background:var(--panel2);}
               <button class="btn" style="border-color:var(--neon2);color:var(--neon2);" onclick="document.getElementById('import-file').click()">&#128228; Importar (Cargar)</button>
               <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
             </div>
+          </div>
+          <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:16px;">
+            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:14px;">☁️ SINCRONIZAR CON GOOGLE DRIVE</div>
+            <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">Sube o baja tus datos desde Google Drive para sincronizar entre PC y teléfono.</div>
+            <div id="drive-auth-section">
+              <button class="btn btn-primary" onclick="driveSignIn()">&#128100; Conectar con Google</button>
+            </div>
+            <div id="drive-sync-section" style="display:none;">
+              <div id="drive-user-info" style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon2);margin-bottom:12px;"></div>
+              <div style="display:flex;gap:8px;flex-wrap:wrap;">
+                <button class="btn btn-primary" onclick="driveUpload()">&#9650; Subir a Drive</button>
+                <button class="btn" style="border-color:var(--neon2);color:var(--neon2);" onclick="driveDownload()">&#9660; Bajar de Drive</button>
+                <button class="btn" style="border-color:var(--text-dim);color:var(--text-dim);" onclick="driveSignOut()">Desconectar</button>
+              </div>
+            </div>
+            <div id="drive-status" style="margin-top:12px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--neon2);min-height:18px;"></div>
+          </div>
+          <div style="display:none;">
             <div id="backup-status" style="margin-top:12px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--neon2);min-height:18px;"></div>
           </div>
         </div>
@@ -725,6 +751,125 @@ function clearSettings(){
   if(alertTab) renderAlerts(alertTab);
   toast('Usando hora real','info');
 }
+
+// ── Google Drive Sync ─────────────────────────────────────────────────────────
+var DRIVE_CLIENT_ID = '907149788510-flh6sgth80vvbtphhjqpo048rqbia2o6.apps.googleusercontent.com';
+var DRIVE_SCOPE = 'https://www.googleapis.com/auth/drive.file';
+var DRIVE_FILE_NAME = 'streaming-manager-backup.json';
+var _driveToken = null;
+var _driveFileId = null;
+
+function driveSetStatus(msg, color){
+  var el=document.getElementById('drive-status');
+  if(el){ el.textContent=msg; el.style.color=color||'var(--neon2)'; }
+}
+
+function driveSignIn(){
+  var client = google.accounts.oauth2.initTokenClient({
+    client_id: DRIVE_CLIENT_ID,
+    scope: DRIVE_SCOPE,
+    callback: function(resp){
+      if(resp.error){ driveSetStatus('Error al conectar: '+resp.error,'var(--danger)'); return; }
+      _driveToken = resp.access_token;
+      // Obtener info del usuario
+      fetch('https://www.googleapis.com/oauth2/v3/userinfo',{
+        headers:{Authorization:'Bearer '+_driveToken}
+      }).then(function(r){return r.json();}).then(function(u){
+        document.getElementById('drive-auth-section').style.display='none';
+        document.getElementById('drive-sync-section').style.display='';
+        var info=document.getElementById('drive-user-info');
+        if(info) info.textContent='✓ Conectado como: '+u.email;
+        driveSetStatus('Listo para sincronizar');
+      });
+    }
+  });
+  client.requestAccessToken();
+}
+
+function driveSignOut(){
+  if(_driveToken) google.accounts.oauth2.revoke(_driveToken);
+  _driveToken=null; _driveFileId=null;
+  document.getElementById('drive-auth-section').style.display='';
+  document.getElementById('drive-sync-section').style.display='none';
+  driveSetStatus('Desconectado');
+}
+
+async function driveFindFile(){
+  var resp = await fetch(
+    'https://www.googleapis.com/drive/v3/files?q=name%3D%22'+DRIVE_FILE_NAME+'%22+and+trashed%3Dfalse&fields=files(id,name,modifiedTime)',
+    {headers:{Authorization:'Bearer '+_driveToken}}
+  );
+  var data = await resp.json();
+  return data.files&&data.files.length ? data.files[0] : null;
+}
+
+async function driveUpload(){
+  if(!_driveToken){ driveSetStatus('Conecta primero con Google','var(--danger)'); return; }
+  driveSetStatus('Subiendo...');
+  try{
+    var content = JSON.stringify(DB, null, 2);
+    var blob = new Blob([content],{type:'application/json'});
+    var existing = await driveFindFile();
+    var url, method;
+    if(existing){
+      url = 'https://www.googleapis.com/upload/drive/v3/files/'+existing.id+'?uploadType=media';
+      method = 'PATCH';
+    } else {
+      // Crear nuevo
+      var meta = await fetch('https://www.googleapis.com/drive/v3/files',{
+        method:'POST',
+        headers:{Authorization:'Bearer '+_driveToken,'Content-Type':'application/json'},
+        body: JSON.stringify({name:DRIVE_FILE_NAME,mimeType:'application/json'})
+      });
+      var metaData = await meta.json();
+      url = 'https://www.googleapis.com/upload/drive/v3/files/'+metaData.id+'?uploadType=media';
+      method = 'PATCH';
+    }
+    await fetch(url,{method:method,headers:{Authorization:'Bearer '+_driveToken,'Content-Type':'application/json'},body:content});
+    driveSetStatus('✓ Subido a Drive correctamente — '+todayStrVE()+' '+new Date().toLocaleTimeString(),'var(--success)');
+    toast('Datos subidos a Drive','success');
+  } catch(e){
+    driveSetStatus('Error al subir: '+e.message,'var(--danger)');
+  }
+}
+
+async function driveDownload(){
+  if(!_driveToken){ driveSetStatus('Conecta primero con Google','var(--danger)'); return; }
+  driveSetStatus('Buscando archivo en Drive...');
+  try{
+    var file = await driveFindFile();
+    if(!file){ driveSetStatus('No se encontró archivo en Drive. Sube primero desde un dispositivo.','var(--warn)'); return; }
+    // Comparar fechas
+    var driveDate = new Date(file.modifiedTime);
+    var localDate = new Date(); // aproximado
+    var driveStr = driveDate.toLocaleString();
+    // Descargar contenido
+    var resp = await fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',
+      {headers:{Authorization:'Bearer '+_driveToken}});
+    var text = await resp.text();
+    var data = JSON.parse(text);
+    if(!data.accounts||!data.platforms){ driveSetStatus('Archivo en Drive no válido','var(--danger)'); return; }
+    // Detectar conflicto
+    var localJson = JSON.stringify(DB);
+    var driveJson = JSON.stringify(data);
+    if(localJson===driveJson){ driveSetStatus('✓ Ya estás sincronizado','var(--success)'); return; }
+    var choice = confirm(
+      '⚠️ Los datos son diferentes.\n\n'+
+      'Drive: modificado el '+driveStr+'\n'+
+      'Este dispositivo: tiene datos locales\n\n'+
+      '¿Descargar datos de Drive y reemplazar los locales?'
+    );
+    if(!choice){ driveSetStatus('Descarga cancelada'); return; }
+    DB = data;
+    if(!DB.trash) DB.trash=[];
+    saveDB(); updateCounts(); renderDashboard();
+    driveSetStatus('✓ Datos de Drive cargados correctamente','var(--success)');
+    toast('Datos sincronizados desde Drive','success');
+  } catch(e){
+    driveSetStatus('Error al descargar: '+e.message,'var(--danger)');
+  }
+}
+
 var _fileHandle=null; // referencia al archivo para sobrescribir
 async function exportData(){
   var data=JSON.stringify(DB, null, 2);
