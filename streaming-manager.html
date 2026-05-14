@@ -515,7 +515,7 @@ select option{background:var(--panel2);}
           <div class="sec-title">Disponibles</div>
           <div style="display:flex;align-items:center;gap:10px;">
             <select id="filter-avail-plat" onchange="renderAvailable()" style="max-width:180px"><option value="">Todas</option></select>
-            <select id="filter-avail-type" onchange="renderAvailable()" style="max-width:140px"><option value="">Todo tipo</option><option value="complete">Completa</option><option value="profile">Perfil</option><option value="email">Por correo</option></select>
+            <select id="filter-avail-type" onchange="renderAvailable()" style="max-width:140px"><option value="">Todo tipo</option><option value="complete">Completa</option><option value="profile">Perfil</option><option value="email">Por correo</option><option value="emailsingle">Correo individual</option></select>
           </div>
         </div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));gap:12px" id="avail-grid"></div>
@@ -753,7 +753,7 @@ select option{background:var(--panel2);}
       </div>
       <div class="fr">
         <div class="fg"><label>Contrasena</label><input type="text" id="a-pass" placeholder="Contrasena"></div>
-        <div class="fg"><label>Tipo de renta</label><select id="a-type" onchange="toggleAccType()"><option value="complete">Cuenta completa</option><option value="profile">Por perfil</option><option value="email">Por correo</option></select></div>
+        <div class="fg"><label>Tipo de renta</label><select id="a-type" onchange="toggleAccType()"><option value="complete">Cuenta completa</option><option value="profile">Por perfil</option><option value="email">Por correo</option><option value="emailsingle">Correo individual</option></select></div>
       </div>
       <div class="fr">
         <div class="fg"><label>Fecha de vencimiento</label><input type="date" id="a-expiry"></div>
@@ -796,6 +796,10 @@ select option{background:var(--panel2);}
           <div class="fg"></div>
         </div>
         <div id="email-slots"></div>
+      </div>
+      <div id="sec-emailsingle" style="display:none">
+        <div class="fsec">// correo individual</div>
+        <div id="emailsingle-slots"></div>
       </div>
       <div class="fsec">// facturación y costos</div>
       <div class="fr">
@@ -889,6 +893,7 @@ select option{background:var(--panel2);}
             <option value="profile">Perfil</option>
             <option value="complete">Cuenta completa</option>
             <option value="email">Por correo</option>
+            <option value="emailsingle">Correo individual</option>
           </select>
         </div>
       </div>
@@ -1438,9 +1443,13 @@ function openAccountModal(id){
         if(inp) inp.value=per?per.name:'';
       },50);
     }
-    if(a2&&a2.type==='email'){
-      document.getElementById('a-ecount').value=a2.profiles?a2.profiles.length:4;
-      buildEmailSlots();
+    if(a2&&(a2.type==='email'||a2.type==='emailsingle')){
+      if(a2.type==='emailsingle'){
+        buildEmailSingleSlot();
+      } else {
+        document.getElementById('a-ecount').value=a2.profiles?a2.profiles.length:4;
+        buildEmailSlots();
+      }
       setTimeout(function(){
         (a2.profiles||[]).forEach(function(prof,i){
           var sl=document.querySelector('[data-eslot="'+i+'"]');
@@ -1495,11 +1504,20 @@ function openAccountModal(id){
 }
 function toggleAccType(){
   var t=document.getElementById('a-type').value;
+  var isES=t==='emailsingle';
+  // Campos principales: ocultar para correo individual
+  var hideFields=['a-email','a-pass','a-expiry','a-notes'];
+  hideFields.forEach(function(id){
+    var el=document.getElementById(id);
+    if(el){ var row=el.closest('.fr'); if(row) row.style.display=isES?'none':''; }
+  });
   document.getElementById('sec-complete').style.display=t==='complete'?'':'none';
   document.getElementById('sec-profile').style.display=t==='profile'?'':'none';
   document.getElementById('sec-email').style.display=t==='email'?'':'none';
+  document.getElementById('sec-emailsingle').style.display=isES?'':'none';
   if(t==='profile')buildProfileSlots();
   if(t==='email')buildEmailSlots();
+  if(isES)buildEmailSingleSlot();
 }
 function updateAssignee(){
   var t=document.getElementById('a-atype').value;
@@ -1542,6 +1560,31 @@ function buildProfileSlots(){
     html+='</div>';
   }
   document.getElementById('profile-slots').innerHTML=html;
+}
+function buildEmailSingleSlot(){
+  var html='<div class="pslot" data-eslot="0">';
+  html+='<div class="pslot-hd">CORREO</div>';
+  html+='<div class="form-row">';
+  html+='<div class="form-group"><label>Correo</label><input type="text" data-f="name" placeholder="correo@ejemplo.com"></div>';
+  html+='<div class="form-group"><label>Clave</label><input type="text" data-f="pin" placeholder="Clave..."></div>';
+  html+='</div>';
+  html+='<div class="form-row">';
+  html+='<div class="form-group"><label>Asignar a</label><select data-f="atype" onchange="handleEmailAssign(this,0)"><option value="">Sin asignar</option><option value="client">Cliente</option><option value="reseller">Revendedor</option></select></div>';
+  html+='<div class="form-group"><label>Nombre</label>';
+  html+='<div class="ac-wrap"><input type="text" data-f="aname-input" class="ac-input" placeholder="Buscar..." autocomplete="off" ';
+  html+='oninput="acFilterSlot(this,0,\'email\')" onfocus="acFilterSlot(this,0,\'email\')" onblur="acBlurSlot(this)" onkeydown="acKeySlot(event,this,0,\'email\')"></input>';
+  html+='<input type="hidden" data-f="aname">';
+  html+='<div class="ac-dropdown" data-acdrop="email-0" style="display:none;"></div>';
+  html+='</div></div>';
+  html+='</div>';
+  html+='<input type="hidden" data-f="cut" value="">';
+  html+='<input type="hidden" data-f="resc" value="">';
+  html+='<div class="form-row">';
+  html+='<div class="form-group"><label>Fecha vencimiento</label><input type="date" data-f="expiry"></div>';
+  html+='<div class="form-group"><label>Notas del cliente</label><input type="text" data-f="cnotes" placeholder="Observaciones..."></div>';
+  html+='</div>';
+  html+='</div>';
+  document.getElementById('emailsingle-slots').innerHTML=html;
 }
 function buildEmailSlots(){
   var count=parseInt(document.getElementById('a-ecount').value)||4;
@@ -1649,11 +1692,13 @@ function saveAccount(){
         data.profiles.push({idx:i,name:sl.querySelector('[data-f="name"]').value.trim()||'Perfil '+(i+1),pin:sl.querySelector('[data-f="pin"]').value.trim(),assignType:realType,assigneeId:realId,resellerClient:'',cutDate:expVal,expiry:expVal,cnotes:cnotesEl?cnotesEl.value.trim():''});
       })();
     }
-  }else if(type==='email'){
-    var ecnt=parseInt(document.getElementById('a-ecount').value)||4;
+  }else if(type==='email'||type==='emailsingle'){
+    var ecnt=type==='emailsingle'?1:parseInt(document.getElementById('a-ecount').value)||4;
+    var _eslotId=type==='emailsingle'?'emailsingle-slots':'email-slots';
     data.profiles=[];
     for(var i=0;i<ecnt;i++){
-      var esl=document.querySelector('[data-eslot="'+i+'"]');
+      var _esCont=document.getElementById(_eslotId||'email-slots');
+      var esl=_esCont?_esCont.querySelector('[data-eslot="'+i+'"]'):document.querySelector('[data-eslot="'+i+'"]');
       if(!esl)continue;
       (function(){
         var expVal=esl.querySelector('[data-f="expiry"]').value;
@@ -2023,7 +2068,7 @@ function buildAccCard(a,p){
   }else{
     return '<div class="acc-card">'+
       '<div class="acc-hd">'+
-        (a.type==='email'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR CORREO</span>':'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR PERFIL</span>')+
+        (a.type==='email'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR CORREO</span>':a.type==='emailsingle'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">CORREO IND.</span>':'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR PERFIL</span>')+
         '<span class="acc-email">'+escH(a.email)+'</span>'+
         '<span class="acc-pass">/ '+escH(a.password)+'</span>'+
         stBadge+
@@ -2034,14 +2079,14 @@ function buildAccCard(a,p){
           return '<span class="acc-expiry'+(warn?' acc-expiry-warn':'')+'">&#128197; '+escH(a.expiry)+'</span>'+
                  '<span style="font-family:Share Tech Mono,monospace;font-size:11px;padding:2px 7px;border-radius:2px;border:1px solid;margin-left:4px;'+(warn?'color:var(--danger);border-color:var(--danger);background:var(--danger-dim);':'color:var(--neon2);border-color:var(--neon2);background:rgba(0,200,255,0.06);')+'">'+dlLbl+'</span>';
         })():'')+
-        '<span style="font-family:Share Tech Mono,monospace;font-size:11px;color:var(--text-dim);margin-left:8px">'+(a.profiles?a.profiles.length:0)+(a.type==='email'?' correos':' perfiles')+'</span>'+
+        '<span style="font-family:Share Tech Mono,monospace;font-size:11px;color:var(--text-dim);margin-left:8px">'+(a.profiles?a.profiles.length:0)+(a.type==='email'?' correos':a.type==='emailsingle'?' correo':' perfiles')+'</span>'+
         '<div class="ml-auto" style="display:flex;gap:6px;">'+
           '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);" onclick="changeAccVencimiento(\''+a.id+'\')" title="Cambiar fecha de vencimiento"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>'+
           '<button class="btn btn-sm btn-primary" onclick="openAccountModal(\''+a.id+'\')" title="Editar">&#9998;</button>'+
           '<button class="btn btn-sm btn-danger" onclick="deleteAccount(\''+a.id+'\')" title="Borrar">&#10005;</button>'+
         '</div>'+
       '</div>'+
-      '<div class="profs-grid">'+
+      '<div class="'+((a.type==='email'||a.type==='emailsingle')?'email-grid':'profs-grid')+'">'+
         (a.profiles||[]).map(function(pr,idx){return buildProfCard(a,pr,idx,p);}).join('')+
       '</div>'+
     '</div>';
@@ -2079,7 +2124,7 @@ function buildProfCard(a,pr,idx,p){
       '<span class="status '+sc+'"><span class="dot"></span>'+st+'</span>'+
     '</div>'+
     '<div class="prof-list">'+
-      (pr.pin?'<div class="prof-li"><span class="prof-k">'+(a.type==='email'?'Clave':'PIN')+'</span><span class="prof-v-click" data-cv="1" data-val="'+escH(pr.pin)+'" onclick="cvClick(this)">'+escH(pr.pin)+'</span></div>':'')+
+      (pr.pin?'<div class="prof-li"><span class="prof-k">'+(a.type==='email'||a.type==='emailsingle'?'Clave':'PIN')+'</span><span class="prof-v-click" data-cv="1" data-val="'+escH(pr.pin)+'" onclick="cvClick(this)">'+escH(pr.pin)+'</span></div>':'')+
       (exp?'<div class="prof-li"><span class="prof-k">Vence</span><span class="prof-v '+(isExp?'tdanger':isUrgent?'twarn':'')+'">'+escH(exp)+(isUrgent?' ('+daysLeft+'d)':isExp?' (vencido)':'')+'</span></div>':'')+
       (person&&pr.assignType==='client'?'<div class="prof-li"><span class="prof-k">Cliente</span><span class="prof-v">'+escH(person.name)+'</span></div>':'')+
       (person&&pr.assignType==='reseller'?'<div class="prof-li"><span class="prof-k">Revendedor</span><span class="prof-v">'+escH(person.name)+'</span></div>':'')+
@@ -2606,7 +2651,7 @@ function doCopy(accId, profIdx, duration){
   if(!a)return;
   var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?'};
   var txt;
-  if(a.type==='email' && profIdx!=='' && profIdx!==null && profIdx!==undefined){
+  if((a.type==='email'||a.type==='emailsingle') && profIdx!=='' && profIdx!==null && profIdx!==undefined){
     var pr=a.profiles[parseInt(profIdx)];
     txt=buildEmailMsg(a,p,pr,duration||'30');
   } else {
@@ -2664,8 +2709,8 @@ function doTG(telegram,accId,profIdx,duration){
   if(!a)return;
   var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?'};
   var pr=(a.type==='profile'&&profIdx!=='')?a.profiles[parseInt(profIdx)]:
-         (a.type==='email'&&profIdx!=='')?a.profiles[parseInt(profIdx)]:null;
-  var txt=(a.type==='email'&&pr)?buildEmailMsg(a,p,pr,duration||'30'):buildMsg(a,p,pr,duration||'30');
+         (a.type==='email'||a.type==='emailsingle')&&profIdx!==''?a.profiles[parseInt(profIdx)]:null;
+  var txt=((a.type==='email'||a.type==='emailsingle')&&pr)?buildEmailMsg(a,p,pr,duration||'30'):buildMsg(a,p,pr,duration||'30');
   openTG(telegram,txt);
 }
 function showSendModal(txt, waUrl, tgUrl){
@@ -2799,9 +2844,9 @@ function getExpiryScopeItems(){
         if(exp){
           var list3=pr.assignType==='client'?DB.clients:DB.resellers;
           var per3=pr.assigneeId?list3.find(function(x){return x.id===pr.assigneeId;}):null;
-          items.push({expiry:exp,label:a.email+' - '+pr.name,platName:pn,typeLbl:a.type==='email'?'Correo':'Perfil',
+          items.push({expiry:exp,label:a.email+' - '+pr.name,platName:pn,typeLbl:(a.type==='email'||a.type==='emailsingle')?'Correo':'Perfil',
             assignedTo:per3?per3.name:null,personId:per3?per3.id:null,
-            accType:a.type,accId:a.id,profIdx:a.profiles.indexOf(pr),
+            accType:(a.type==='emailsingle'?'email':a.type),accId:a.id,profIdx:a.profiles.indexOf(pr),
             phone:per3?per3.phone||'':'',telegram:per3?per3.telegram||'':''});
         }
       });
@@ -2860,7 +2905,7 @@ function getAvailItems(){
     }else if(a.profiles){
       a.profiles.forEach(function(pr,i){
         if(!pr.assigneeId&&!(pr.expiry&&new Date(pr.expiry)<nowVE())){
-          var isEmail=a.type==='email';
+          var isEmail=a.type==='email'||a.type==='emailsingle';
           items.push({accId:a.id,profIdx:i,
             name:isEmail?(pr.name||'Correo '+(i+1)):(pr.name||'Perfil '+(i+1)),
             platName:pn,platId:a.platformId,email:a.email,password:a.password,pin:pr.pin,
@@ -2961,7 +3006,7 @@ function renderFinance(){
         var per2=list2.find(function(x){return x.id===pr.assigneeId;})||{name:'?'};
         var slotName=pr.name||'—';
         var typeLbl=a.type==='email'?'Correo':'Perfil';
-        var accKey=a.type==='email'?'email':'profile';
+        var accKey=(a.type==='email'||a.type==='emailsingle')?'email':'profile';
         var pType2=pr.assignType==='reseller'?'reseller':'client';
         var rKey2=accKey+'_'+pType2;
         var price2=getRatesForPlat(a.platformId)[rKey2]||0;
@@ -3537,7 +3582,7 @@ function updateTransferAccounts(){
   if(!platId) return;
   // Cuentas de tipo perfil o email en esa plataforma (que tengan al menos un slot libre)
   var accs=DB.accounts.filter(function(a){
-    return a.platformId===platId && (a.type==='profile'||a.type==='email') && a.profiles &&
+    return a.platformId===platId && (a.type==='profile'||a.type==='email'||a.type==='emailsingle') && a.profiles &&
       a.profiles.some(function(pr){return !pr.assigneeId;});
   });
   if(!accs.length){
@@ -3669,7 +3714,7 @@ function updateSaleAccounts(){
         if(!expired) opts.push({label: a.email, accId:a.id, profIdx:''});
       }
     } else if(type==='email'){
-      if(a.type==='email' && a.profiles){
+      if((a.type==='email'||a.type==='emailsingle') && a.profiles){
         a.profiles.forEach(function(pr,i){
           if(!pr.assigneeId){
             var expired = pr.expiry && new Date(pr.expiry)<nowVE();
