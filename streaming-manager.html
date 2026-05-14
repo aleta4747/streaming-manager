@@ -3783,6 +3783,26 @@ function updateSaleAccounts(){
   // Poblar plataformas en correo individual
   // emailsingle usa sale-platform directamente
 }
+function resolveSalePerson(){
+  var personType=document.getElementById('sale-person-type').value;
+  var personId=document.getElementById('sale-person-id').value;
+  var personList=personType==='client'?DB.clients:DB.resellers;
+  // Si hidden vacío, buscar por nombre escrito
+  if(!personId){
+    var inp=document.getElementById('sale-person-input');
+    var name=inp?inp.value.trim().toLowerCase():'';
+    if(name){
+      var found=personList.find(function(x){return x.name.toLowerCase()===name;});
+      if(found){
+        document.getElementById('sale-person-id').value=(personType==='client'?'cli:':'res:')+found.id;
+        return found;
+      }
+    }
+    return null;
+  }
+  var realId=personId.startsWith('cli:')?personId.slice(4):personId.startsWith('res:')?personId.slice(4):personId;
+  return personList.find(function(x){return x.id===realId;})||null;
+}
 function getSaleData(){
   var platId = document.getElementById('sale-platform').value;
   var type = document.getElementById('sale-type').value;
@@ -3805,10 +3825,7 @@ function getSaleData(){
              return base;
            })() : null;
   var duration = document.getElementById('sale-duration').value;
-  var personType = document.getElementById('sale-person-type').value;
-  var personId = document.getElementById('sale-person-id').value;
-  var personList = personType==='client' ? DB.clients : DB.resellers;
-  var person = personId ? personList.find(function(x){return x.id===personId;}) : null;
+  var person=resolveSalePerson();
   return {a:a, p:p, pr:pr, duration:duration, person:person, chosen:chosen, type:type};
 }
 function confirmSaleEmailSingle(){
@@ -3816,23 +3833,17 @@ function confirmSaleEmailSingle(){
   var emailVal=document.getElementById('sale-es-email').value.trim();
   var passVal=document.getElementById('sale-es-pass').value.trim();
   var personType=document.getElementById('sale-person-type').value;
-  var personId=document.getElementById('sale-person-id').value;
   var dur=document.getElementById('sale-duration').value;
   var startDate=document.getElementById('sale-start').value||todayStrVE();
   if(!platId){toast('Selecciona una plataforma','warn');return;}
   if(!emailVal||!passVal){toast('Ingresa correo y clave','warn');return;}
-  if(!personId){toast('Selecciona un cliente','warn');return;}
+  var person=resolveSalePerson();
+  if(!person){toast('Selecciona un cliente o revendedor','warn');return;}
   // Calcular fecha de vencimiento
   var start=new Date(startDate);
   var expiry=new Date(start.getTime()+parseInt(dur)*86400000).toISOString().slice(0,10);
-  var personList=personType==='client'?DB.clients:DB.resellers;
-  // Extraer ID real si tiene prefijo
-  // Extraer ID real del prefijo cli:/res:
-  var realPersonId=personId;
-  if(personId.startsWith('cli:')) realPersonId=personId.slice(4);
-  else if(personId.startsWith('res:')) realPersonId=personId.slice(4);
-  var person=personList.find(function(x){return x.id===realPersonId;});
-  if(!person){toast('Cliente no encontrado','warn');return;}
+  // person ya fue resuelto arriba
+  var realPersonId=person.id;
   // Crear la cuenta nueva
   var newAcc={
     id:uid(), platformId:platId, type:'emailsingle',
