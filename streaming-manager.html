@@ -3720,15 +3720,30 @@ document.addEventListener('click',function(e){
 });
 // ===== NUEVA VENTA =====
 function openSaleModal(){
-  // Set today as default start date
+  // Resetear tipo al abrir
+  document.getElementById('sale-type').value = 'profile';
+  // Set today as default date
   var today = todayStrVE();
   document.getElementById('sale-start').value = today;
   document.getElementById('sale-preview').style.display = 'none';
+  // Asegurar visibilidad correcta
+  var slotSec=document.getElementById('sale-slot-section');
+  var esSec=document.getElementById('sale-emailsingle-fields');
+  var ef=document.getElementById('sale-email-fields');
+  if(slotSec) slotSec.style.display='';
+  if(esSec) esSec.style.display='none';
+  if(ef) ef.style.display='none';
   // Populate platform select
   var pSel = document.getElementById('sale-platform');
   pSel.innerHTML = DB.platforms.map(function(p){return '<option value="'+p.id+'">'+escH(p.name)+'</option>';}).join('');
   updateSalePersonList();
   updateSaleAccounts();
+  // Limpiar campos de correo individual
+  ['sale-es-email','sale-es-pass','sale-es-billing','sale-es-provider','sale-es-cnotes'].forEach(function(id){
+    var el=document.getElementById(id); if(el) el.value='';
+  });
+  var esC=document.getElementById('sale-es-cost'); if(esC) esC.value='';
+  var esG=document.getElementById('sale-es-gplay'); if(esG) esG.value='';
   openModal('modal-sale');
 }
 function updateSalePersonList(){
