@@ -940,7 +940,7 @@ select option{background:var(--panel2);}
           </select>
         </div>
         <div class="fg">
-          <label>Fecha de inicio</label>
+          <label>Fecha de vencimiento</label>
           <input type="date" id="sale-start">
         </div>
       </div>
@@ -3834,21 +3834,18 @@ function confirmSaleEmailSingle(){
   var passVal=document.getElementById('sale-es-pass').value.trim();
   var personType=document.getElementById('sale-person-type').value;
   var dur=document.getElementById('sale-duration').value;
-  var startDate=document.getElementById('sale-start').value||todayStrVE();
   if(!platId){toast('Selecciona una plataforma','warn');return;}
   if(!emailVal||!passVal){toast('Ingresa correo y clave','warn');return;}
   var person=resolveSalePerson();
   if(!person){toast('Selecciona un cliente o revendedor','warn');return;}
-  // Calcular fecha de vencimiento
-  var start=new Date(startDate);
-  var expiry=new Date(start.getTime()+parseInt(dur)*86400000).toISOString().slice(0,10);
+  var expiry=document.getElementById('sale-start').value||'';
   // person ya fue resuelto arriba
   var realPersonId=person.id;
   // Crear la cuenta nueva
   var newAcc={
     id:uid(), platformId:platId, type:'emailsingle',
-    email:'', password:'',
-    expiry:'', notes:'',
+    email:emailVal, password:passVal,
+    expiry:expiry, notes:'',
     billing:document.getElementById('sale-es-billing').value.trim(),
     provider:document.getElementById('sale-es-provider').value.trim(),
     googlePlay:document.getElementById('sale-es-gplay').value,
@@ -3909,9 +3906,7 @@ function confirmSale(){
   var d = getSaleData();
   if(!d){ toast('Selecciona una cuenta o perfil disponible','warn'); return; }
   if(!d.person){ toast('Selecciona un cliente o revendedor','warn'); return; }
-  var startDate = document.getElementById('sale-start').value;
-  var days = parseInt(d.duration);
-  var expiry = startDate ? new Date(new Date(startDate).getTime() + days*86400000).toISOString().split('T')[0] : '';
+  var expiry = document.getElementById('sale-start').value||'';
   // Assign the account/profile
   var personType = document.getElementById('sale-person-type').value;
   if(d.type==='complete'){
