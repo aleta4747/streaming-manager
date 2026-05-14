@@ -749,13 +749,13 @@ select option{background:var(--panel2);}
       <div class="fsec">// datos de la cuenta</div>
       <div class="fr">
         <div class="fg"><label>Plataforma</label><select id="a-platform"></select></div>
-        <div class="fg"><label>Correo electronico</label><input type="email" id="a-email" placeholder="cuenta@email.com"></div>
-      </div>
-      <div class="fr">
-        <div class="fg"><label>Contrasena</label><input type="text" id="a-pass" placeholder="Contrasena"></div>
         <div class="fg"><label>Tipo de renta</label><select id="a-type" onchange="toggleAccType()"><option value="complete">Cuenta completa</option><option value="profile">Por perfil</option><option value="email">Por correo</option><option value="emailsingle">Correo individual</option></select></div>
       </div>
-      <div class="fr">
+      <div class="fr" id="row-email-pass">
+        <div class="fg"><label>Correo electronico</label><input type="email" id="a-email" placeholder="cuenta@email.com"></div>
+        <div class="fg"><label>Contrasena</label><input type="text" id="a-pass" placeholder="Contrasena"></div>
+      </div>
+      <div class="fr" id="row-expiry-notes">
         <div class="fg"><label>Fecha de vencimiento</label><input type="date" id="a-expiry"></div>
         <div class="fg"><label>Notas internas</label><input type="text" id="a-notes" placeholder="Notas..."></div>
       </div>
@@ -1420,6 +1420,10 @@ function openAccountModal(id){
     ['a-email','a-pass','a-notes','a-accpin','a-resclient','a-billing','a-provider','a-cost'].forEach(function(x){document.getElementById(x).value='';})
     document.getElementById('a-gplay').value='';;
     document.getElementById('a-type').value='complete';
+    var _rEP=document.getElementById('row-email-pass');
+    var _rEN=document.getElementById('row-expiry-notes');
+    if(_rEP) _rEP.style.display='';
+    if(_rEN) _rEN.style.display='';
     document.getElementById('a-pcount').value=4;
     document.getElementById('a-haspin').value='yes';
     document.getElementById('a-atype').value='';
@@ -1505,12 +1509,11 @@ function openAccountModal(id){
 function toggleAccType(){
   var t=document.getElementById('a-type').value;
   var isES=t==='emailsingle';
-  // Campos principales: ocultar para correo individual
-  var hideFields=['a-email','a-pass','a-expiry','a-notes'];
-  hideFields.forEach(function(id){
-    var el=document.getElementById(id);
-    if(el){ var row=el.closest('.fr'); if(row) row.style.display=isES?'none':''; }
-  });
+  // Ocultar correo/clave/fecha/notas para correo individual
+  var rowEP=document.getElementById('row-email-pass');
+  var rowEN=document.getElementById('row-expiry-notes');
+  if(rowEP) rowEP.style.display=isES?'none':'';
+  if(rowEN) rowEN.style.display=isES?'none':'';
   document.getElementById('sec-complete').style.display=t==='complete'?'':'none';
   document.getElementById('sec-profile').style.display=t==='profile'?'':'none';
   document.getElementById('sec-email').style.display=t==='email'?'':'none';
