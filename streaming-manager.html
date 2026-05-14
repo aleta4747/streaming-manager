@@ -1450,16 +1450,13 @@ function openAccountModal(id){
           if(sl.querySelector('[data-f="cnotes"]')) sl.querySelector('[data-f="cnotes"]').value=prof.cnotes||'';
           var atypeSel=sl.querySelector('[data-f="atype"]');
           atypeSel.value=prof.assignType||'';
-          var anSel=sl.querySelector('[data-f="aname"]');
-          if(prof.assignType==='client'){
-            anSel.innerHTML='<option value="">Sel...</option>'+DB.clients.map(function(c){return '<option value="cli:'+c.id+'">'+escH(c.name)+'</option>';}).join('');
-          } else if(prof.assignType==='reseller'){
-            anSel.innerHTML='<option value="">Sel...</option>'+DB.resellers.map(function(r){return '<option value="res:'+r.id+'">'+escH(r.name)+'</option>';}).join('');
-          }
+          // Autocomplete: setear hidden + input visible
+          var allP3=[].concat(DB.clients,DB.resellers);
+          var per3=prof.assigneeId?allP3.find(function(x){return x.id===prof.assigneeId;}):null;
           var compVal=prof.assigneeId?(prof.assignType==='reseller'?'res:':'cli:')+prof.assigneeId:'';
-          anSel.value=compVal;
-          // Actualizar input visible del autocomplete
+          var anHid=sl.querySelector('[data-f="aname"]');
           var anInp=sl.querySelector('[data-f="aname-input"]');
+          if(anHid) anHid.value=compVal;
           if(anInp) anInp.value=per3?per3.name:'';
         });
       },120);
@@ -1476,23 +1473,17 @@ function openAccountModal(id){
           sl.querySelector('[data-f="resc"]').value=prof.resellerClient||'';
           sl.querySelector('[data-f="cut"]').value=prof.cutDate||'';
           if(sl.querySelector('[data-f="cnotes"]')) sl.querySelector('[data-f="cnotes"]').value=prof.cnotes||'';
-          // Setear atype y repoblar la lista del tipo correcto
+          // Setear atype
           var atypeSel=sl.querySelector('[data-f="atype"]');
           atypeSel.value=prof.assignType||'';
-          var anSel=sl.querySelector('[data-f="aname"]');
-          if(prof.assignType==='client'){
-            anSel.innerHTML='<option value="">Sel...</option>'+DB.clients.map(function(c){return '<option value="cli:'+c.id+'">'+escH(c.name)+'</option>';}).join('');
-          } else if(prof.assignType==='reseller'){
-            anSel.innerHTML='<option value="">Sel...</option>'+DB.resellers.map(function(r){return '<option value="res:'+r.id+'">'+escH(r.name)+'</option>';}).join('');
-          } else {
-            anSel.innerHTML='<option value="">-</option>';
-          }
-          // Seleccionar el valor guardado
-          var compVal=prof.assigneeId?(prof.assignType==='reseller'?'res:':'cli:')+prof.assigneeId:'';
-          anSel.value=compVal;
-          // Actualizar input visible del autocomplete
-          var anInp=sl.querySelector('[data-f="aname-input"]');
-          if(anInp) anInp.value=per3?per3.name:'';
+          // Autocomplete: setear hidden + input visible
+          var allPP=[].concat(DB.clients,DB.resellers);
+          var perP=prof.assigneeId?allPP.find(function(x){return x.id===prof.assigneeId;}):null;
+          var compValP=prof.assigneeId?(prof.assignType==='reseller'?'res:':'cli:')+prof.assigneeId:'';
+          var anHidP=sl.querySelector('[data-f="aname"]');
+          var anInpP=sl.querySelector('[data-f="aname-input"]');
+          if(anHidP) anHidP.value=compValP;
+          if(anInpP) anInpP.value=perP?perP.name:'';
         });
       },120);
     }
@@ -1579,28 +1570,18 @@ function buildEmailSlots(){
   document.getElementById('email-slots').innerHTML=html;
 }
 function handleEmailAssign(sel,idx){
-  var t=sel.value;
   var slot=document.querySelector('[data-eslot="'+idx+'"]');
-  var ns=slot.querySelector('[data-f="aname"]');
-  if(t==='client'){
-    ns.innerHTML='<option value="">Sel...</option>'+DB.clients.map(function(c){return '<option value="cli:'+c.id+'">'+escH(c.name)+'</option>';}).join('');
-  } else if(t==='reseller'){
-    ns.innerHTML='<option value="">Sel...</option>'+DB.resellers.map(function(r){return '<option value="res:'+r.id+'">'+escH(r.name)+'</option>';}).join('');
-  } else {
-    ns.innerHTML='<option value="">-</option>';
-  }
+  var hid=slot.querySelector('[data-f="aname"]');
+  var inp=slot.querySelector('[data-f="aname-input"]');
+  if(hid) hid.value='';
+  if(inp) inp.value='';
 }
 function handleProfAssign(sel,idx){
-  var t=sel.value;
   var slot=document.querySelector('[data-slot="'+idx+'"]');
-  var ns=slot.querySelector('[data-f="aname"]');
-  if(t==='client'){
-    ns.innerHTML='<option value="">Sel...</option>'+DB.clients.map(function(c){return '<option value="cli:'+c.id+'">'+escH(c.name)+'</option>';}).join('');
-  } else if(t==='reseller'){
-    ns.innerHTML='<option value="">Sel...</option>'+DB.resellers.map(function(r){return '<option value="res:'+r.id+'">'+escH(r.name)+'</option>';}).join('');
-  } else {
-    ns.innerHTML='<option value="">-</option>';
-  }
+  var hid=slot.querySelector('[data-f="aname"]');
+  var inp=slot.querySelector('[data-f="aname-input"]');
+  if(hid) hid.value='';
+  if(inp) inp.value='';
 }
 function saveAccount(){
   var email=document.getElementById('a-email').value.trim();
