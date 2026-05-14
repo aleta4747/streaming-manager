@@ -990,23 +990,37 @@ function driveSetStatus(msg, color){
   if(el){ el.textContent=msg; el.style.color=color||'var(--neon2)'; }
 }
 
-function driveSignIn(){
+function driveShowConnected(email){
+  document.getElementById('drive-auth-section').style.display='none';
+  document.getElementById('drive-sync-section').style.display='';
+  var info=document.getElementById('drive-user-info');
+  if(info) info.textContent='✓ Conectado como: '+email;
+  driveSetStatus('Listo para sincronizar');
+}
+function driveGetUserAndShow(){
+  fetch('https://www.googleapis.com/oauth2/v3/userinfo',{
+    headers:{Authorization:'Bearer '+_driveToken}
+  }).then(function(r){return r.json();}).then(function(u){
+    var email=u.email||u.name||u.sub||'tu cuenta de Google';
+    localStorage.setItem('sag8_drive_email', email);
+    driveShowConnected(email);
+  }).catch(function(){ driveShowConnected(localStorage.getItem('sag8_drive_email')||'Google'); });
+}
+function driveSignIn(silent){
   var client = google.accounts.oauth2.initTokenClient({
     client_id: DRIVE_CLIENT_ID,
     scope: DRIVE_SCOPE,
+    prompt: silent?'none':'',
     callback: function(resp){
-      if(resp.error){ driveSetStatus('Error al conectar: '+resp.error,'var(--danger)'); return; }
+      if(resp.error){
+        if(silent) return; // reconexión silenciosa falló, no mostrar error
+        driveSetStatus('Error al conectar: '+resp.error,'var(--danger)');
+        return;
+      }
       _driveToken = resp.access_token;
-      // Obtener info del usuario
-      fetch('https://www.googleapis.com/oauth2/v3/userinfo',{
-        headers:{Authorization:'Bearer '+_driveToken}
-      }).then(function(r){return r.json();}).then(function(u){
-        document.getElementById('drive-auth-section').style.display='none';
-        document.getElementById('drive-sync-section').style.display='';
-        var info=document.getElementById('drive-user-info');
-        if(info) info.textContent='✓ Conectado como: '+(u.email||u.name||u.sub||'tu cuenta de Google');
-        driveSetStatus('Listo para sincronizar');
-      });
+      // Guardar que el usuario conectó Google Drive
+      localStorage.setItem('sag8_drive_connected','1');
+      driveGetUserAndShow();
     }
   });
   client.requestAccessToken();
@@ -1015,6 +1029,8 @@ function driveSignIn(){
 function driveSignOut(){
   if(_driveToken) google.accounts.oauth2.revoke(_driveToken);
   _driveToken=null; _driveFileId=null;
+  localStorage.removeItem('sag8_drive_connected');
+  localStorage.removeItem('sag8_drive_email');
   document.getElementById('drive-auth-section').style.display='';
   document.getElementById('drive-sync-section').style.display='none';
   driveSetStatus('Desconectado');
@@ -1166,6 +1182,16 @@ function initSettings(){
   if(di) di.value=_cfgDate||'';
   if(ti) ti.value=_cfgTime||'';
   if(st) st.textContent=_cfgDate?'Usando fecha manual: '+_cfgDate+' '+(_cfgTime||'00:00'):'Usando hora real del dispositivo';
+  // Reconexión automática Drive si estaba conectado antes
+  if(localStorage.getItem('sag8_drive_connected')==='1' && !_driveToken){
+    var savedEmail=localStorage.getItem('sag8_drive_email')||'Google';
+    driveSetStatus('Reconectando...');
+    setTimeout(function(){
+      try{ driveSignIn(true); }catch(e){ driveSetStatus('Conecta de nuevo'); }
+    },1000);
+  } else if(_driveToken){
+    driveShowConnected(localStorage.getItem('sag8_drive_email')||'Google');
+  }
 }
 // ── Funciones de fecha con soporte de config manual ──────────────────────
 function nowVE(){
