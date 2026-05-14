@@ -1598,8 +1598,17 @@ function saveAccount(){
     googlePlay:document.getElementById('a-gplay').value,
     cost:document.getElementById('a-cost').value};
   if(type==='complete'){
-    data.assignType=document.getElementById('a-atype').value;
-    data.assigneeId=document.getElementById('a-assignee').value;
+    var _aval=document.getElementById('a-assignee').value;
+    if(_aval.startsWith('cli:')){
+      data.assignType='client';
+      data.assigneeId=_aval.slice(4);
+    } else if(_aval.startsWith('res:')){
+      data.assignType='reseller';
+      data.assigneeId=_aval.slice(4);
+    } else {
+      data.assignType=document.getElementById('a-atype').value;
+      data.assigneeId=_aval;
+    }
     data.resellerClient=document.getElementById('a-resclient').value.trim();
     data.cutDate=document.getElementById('a-cutdate').value;
   }else if(type==='profile'){
