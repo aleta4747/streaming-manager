@@ -1599,14 +1599,31 @@ function saveAccount(){
     cost:document.getElementById('a-cost').value};
   if(type==='complete'){
     var _aval=document.getElementById('a-assignee').value;
-    if(_aval.startsWith('cli:')){
+    var _atype=document.getElementById('a-atype').value;
+    // Si el hidden está vacío, intentar buscar por nombre escrito
+    if(!_aval){
+      var _ainput=document.getElementById('a-assignee-input');
+      var _aname=_ainput?_ainput.value.trim().toLowerCase():'';
+      if(_aname){
+        var _alist=_atype==='reseller'?DB.resellers:DB.clients;
+        var _afound=_alist.find(function(x){return x.name.toLowerCase()===_aname;});
+        if(_afound){
+          data.assignType=_atype||'client';
+          data.assigneeId=_afound.id;
+        } else {
+          data.assignType=''; data.assigneeId='';
+        }
+      } else {
+        data.assignType=''; data.assigneeId='';
+      }
+    } else if(_aval.startsWith('cli:')){
       data.assignType='client';
       data.assigneeId=_aval.slice(4);
     } else if(_aval.startsWith('res:')){
       data.assignType='reseller';
       data.assigneeId=_aval.slice(4);
     } else {
-      data.assignType=document.getElementById('a-atype').value;
+      data.assignType=_atype;
       data.assigneeId=_aval;
     }
     data.resellerClient=document.getElementById('a-resclient').value.trim();
