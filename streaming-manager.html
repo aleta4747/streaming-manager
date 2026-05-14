@@ -2985,30 +2985,7 @@ function toast(msg,type){
   document.getElementById('toast-wrap').appendChild(el);
   setTimeout(function(){el.remove();},2800);
 }
-function seedDemo(){
-  if(DB.platforms.length)return;
-  DB.platforms=[
-    {id:'p1',name:'Netflix',category:'Streaming',color:'#e50914',logo:'https://upload.wikimedia.org/wikipedia/commons/0/08/Netflix_2015_logo.svg',desc:'',url:'',msgTemplate:'Ante cualquier inconveniente avisar lo antes posible, solo se suman los dias perdidos a partir del dia del reporte.'},
-    {id:'p2',name:'Disney+',category:'Streaming',color:'#1139b9',logo:'https://upload.wikimedia.org/wikipedia/commons/3/3e/Disney%2B_logo.svg',desc:'',url:''},
-    {id:'p3',name:'Prime Video',category:'Streaming',color:'#00a8e0',logo:'',desc:'',url:''}
-  ];
-  DB.clients=[{id:'c1',name:'Maria Gonzalez',phone:'+58 414-000-0001',notes:''},{id:'c2',name:'Carlos Perez',phone:'+58 424-000-0002',notes:''}];
-  DB.resellers=[{id:'r1',name:'Juan Revendedor',phone:'+58 412-000-0003',notes:'Zona Caracas'}];
-  var today=todayVE();
-  var soon=new Date(today.getTime()+5*86400000).toISOString().slice(0,10);
-  var active=new Date(today.getTime()+60*86400000).toISOString().slice(0,10);
-  DB.accounts=[
-    {id:'a1',platformId:'p1',email:'cuenta1@netflix.com',password:'Pass1234',type:'profile',expiry:active,notes:'',accountPin:'1234',hasPin:true,profiles:[
-      {idx:0,name:'Perfil A',pin:'1111',assignType:'client',assigneeId:'c1',resellerClient:'',cutDate:active,expiry:active},
-      {idx:1,name:'Perfil B',pin:'2222',assignType:'reseller',assigneeId:'r1',resellerClient:'Luis Cliente',cutDate:soon,expiry:soon},
-      {idx:2,name:'Perfil C',pin:'3333',assignType:'',assigneeId:'',resellerClient:'',cutDate:'',expiry:''},
-      {idx:3,name:'Perfil D',pin:'4444',assignType:'',assigneeId:'',resellerClient:'',cutDate:'',expiry:''}
-    ]},
-    {id:'a2',platformId:'p2',email:'cuenta2@disney.com',password:'DisneyPass99',type:'complete',expiry:soon,notes:'Premium',assignType:'client',assigneeId:'c2',resellerClient:'',cutDate:soon,accountPin:''},
-    {id:'a3',platformId:'p3',email:'prime@amazon.com',password:'PrimePass22',type:'complete',expiry:active,notes:'',assignType:'',assigneeId:'',resellerClient:'',cutDate:'',accountPin:''}
-  ];
-  saveDB();
-}
+
 function runGlobalSearch(){
   var q = document.getElementById('global-search').value.trim().toLowerCase();
   var panel = document.getElementById('global-search-panel');
@@ -3581,7 +3558,7 @@ function confirmSale(){
   }
   if(currentView==='dashboard') renderDashboard();
 }
-loadDB();seedDemo();updateCounts();
+loadDB();updateCounts();
 if(!checkSession()){
   // Mostrar pantalla de login
   document.getElementById('login-screen').style.display='flex';
