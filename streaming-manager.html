@@ -364,6 +364,37 @@ select option{background:var(--panel2);}
   .nav-icon { font-size: 15px; }
   .topbar-actions .btn { padding: 4px 6px !important; font-size: 10px !important; }
 }
+
+/* Autocomplete */
+.ac-wrap { position: relative; }
+.ac-input {
+  width: 100%; background: var(--bg); border: 1px solid var(--border);
+  color: var(--text-bright); padding: 8px 12px; border-radius: 3px;
+  font-size: 14px; font-family: Nunito, sans-serif; outline: none;
+  box-sizing: border-box;
+}
+.ac-input:focus { border-color: var(--neon2); }
+.ac-dropdown {
+  position: absolute; top: 100%; left: 0; right: 0; z-index: 9999;
+  background: var(--panel2); border: 1px solid var(--neon2);
+  border-radius: 3px; max-height: 200px; overflow-y: auto;
+  box-shadow: 0 4px 16px rgba(0,0,0,0.5);
+}
+.ac-option {
+  padding: 9px 12px; cursor: pointer; font-size: 14px;
+  color: var(--text-bright); border-bottom: 1px solid var(--border);
+  display: flex; align-items: center; gap: 8px;
+}
+.ac-option:hover, .ac-option.ac-active { background: var(--panel); color: var(--neon); }
+.ac-option:last-child { border-bottom: none; }
+.ac-badge {
+  font-family: Share Tech Mono, monospace; font-size: 9px;
+  padding: 1px 5px; border-radius: 2px; border: 1px solid;
+  flex-shrink: 0;
+}
+.ac-badge-cli { color: var(--neon2); border-color: var(--neon2); }
+.ac-badge-res { color: var(--warn); border-color: var(--warn); }
+
 </style>
 <script src="https://accounts.google.com/gsi/client" async defer></script>
 <script src="https://apis.google.com/js/api.js" async defer></script>
@@ -732,7 +763,14 @@ select option{background:var(--panel2);}
         <div class="fsec">// asignacion cuenta completa</div>
         <div class="fr">
           <div class="fg"><label>Asignar a</label><select id="a-atype" onchange="updateAssignee()"><option value="">Sin asignar</option><option value="client">Cliente</option><option value="reseller">Revendedor</option></select></div>
-          <div class="fg"><label>Nombre</label><select id="a-assignee"></select></div>
+          <div class="fg"><label>Nombre</label>
+            <div class="ac-wrap" id="ac-wrap-assignee">
+              <input type="text" id="a-assignee-input" class="ac-input" placeholder="Buscar cliente o revendedor..." autocomplete="off"
+                oninput="acFilter('assignee')" onfocus="acFilter('assignee')" onblur="acBlur('assignee')" onkeydown="acKey(event,'assignee')">
+              <input type="hidden" id="a-assignee">
+              <div class="ac-dropdown" id="ac-drop-assignee" style="display:none;"></div>
+            </div>
+          </div>
         </div>
         <div class="fr" id="row-resclient" style="display:none">
           <div class="fg"><label>Cliente del revendedor</label><input type="text" id="a-resclient" placeholder="Nombre del cliente final"></div>
@@ -828,7 +866,12 @@ select option{background:var(--panel2);}
         </div>
         <div class="fg">
           <label>Nombre</label>
-          <select id="sale-person-id"></select>
+          <div class="ac-wrap" id="ac-wrap-sale">
+            <input type="text" id="sale-person-input" class="ac-input" placeholder="Buscar..." autocomplete="off"
+              oninput="acFilter('sale')" onfocus="acFilter('sale')" onblur="acBlur('sale')" onkeydown="acKey(event,'sale')">
+            <input type="hidden" id="sale-person-id">
+            <div class="ac-dropdown" id="ac-drop-sale" style="display:none;"></div>
+          </div>
         </div>
       </div>
       <div class="fsec">// servicio vendido</div>
@@ -1383,7 +1426,13 @@ function openAccountModal(id){
     // Para cuenta completa: setear el asignado después de que updateAssignee pobló el select
     if(a2&&a2.type==='complete'){
       setTimeout(function(){
-        document.getElementById('a-assignee').value=a2.assigneeId||'';
+        // Buscar nombre para mostrar en el input
+        var allP=[].concat(DB.clients,DB.resellers);
+        var per=a2.assigneeId?allP.find(function(x){return x.id===a2.assigneeId;}):null;
+        var compVal=a2.assigneeId?(a2.assignType==='reseller'?'res:':'cli:')+a2.assigneeId:'';
+        document.getElementById('a-assignee').value=compVal;
+        var inp=document.getElementById('a-assignee-input');
+        if(inp) inp.value=per?per.name:'';
       },50);
     }
     if(a2&&a2.type==='email'){
@@ -1409,6 +1458,9 @@ function openAccountModal(id){
           }
           var compVal=prof.assigneeId?(prof.assignType==='reseller'?'res:':'cli:')+prof.assigneeId:'';
           anSel.value=compVal;
+          // Actualizar input visible del autocomplete
+          var anInp=sl.querySelector('[data-f="aname-input"]');
+          if(anInp) anInp.value=per3?per3.name:'';
         });
       },120);
     }
@@ -1438,6 +1490,9 @@ function openAccountModal(id){
           // Seleccionar el valor guardado
           var compVal=prof.assigneeId?(prof.assignType==='reseller'?'res:':'cli:')+prof.assigneeId:'';
           anSel.value=compVal;
+          // Actualizar input visible del autocomplete
+          var anInp=sl.querySelector('[data-f="aname-input"]');
+          if(anInp) anInp.value=per3?per3.name:'';
         });
       },120);
     }
@@ -1454,11 +1509,14 @@ function toggleAccType(){
 }
 function updateAssignee(){
   var t=document.getElementById('a-atype').value;
-  var sel=document.getElementById('a-assignee');
   document.getElementById('row-resclient').style.display=t==='reseller'?'':'none';
-  if(!t){sel.innerHTML='<option value="">-</option>';return;}
-  var list=t==='client'?DB.clients:DB.resellers;
-  sel.innerHTML='<option value="">Seleccionar...</option>'+list.map(function(p){return '<option value="'+p.id+'">'+escH(p.name)+'</option>';}).join('');
+  // Limpiar el campo de autocompletado
+  var inp=document.getElementById('a-assignee-input');
+  var hid=document.getElementById('a-assignee');
+  if(inp) inp.value='';
+  if(hid) hid.value='';
+  var drop=document.getElementById('ac-drop-assignee');
+  if(drop) drop.style.display='none';
 }
 function buildProfileSlots(){
   var count=parseInt(document.getElementById('a-pcount').value)||4;
@@ -1474,7 +1532,12 @@ function buildProfileSlots(){
     html+='</div>';
     html+='<div class="form-row">';
     html+='<div class="form-group"><label>Asignar a</label><select data-f="atype" onchange="handleProfAssign(this,'+i+')"><option value="">Sin asignar</option><option value="client">Cliente</option><option value="reseller">Revendedor</option></select></div>';
-    html+='<div class="form-group"><label>Nombre</label><select data-f="aname"><option value="">-</option></select></div>';
+    html+='<div class="form-group"><label>Nombre</label>';
+    html+='<div class="ac-wrap"><input type="text" data-f="aname-input" class="ac-input" placeholder="Buscar..." autocomplete="off" ';
+    html+='oninput="acFilterSlot(this,'+i+',\'prof\')" onfocus="acFilterSlot(this,'+i+',\'prof\')" onblur="acBlurSlot(this)" onkeydown="acKeySlot(event,this,'+i+',\'prof\')"></input>';
+    html+='<input type="hidden" data-f="aname">';
+    html+='<div class="ac-dropdown" data-acdrop="prof-'+i+'" style="display:none;"></div>';
+    html+='</div></div>';
     html+='</div>';
     html+='<input type="hidden" data-f="cut" value="">';
     html+='<input type="hidden" data-f="resc" value="">';
@@ -1498,7 +1561,12 @@ function buildEmailSlots(){
     html+='</div>';
     html+='<div class="form-row">';
     html+='<div class="form-group"><label>Asignar a</label><select data-f="atype" onchange="handleEmailAssign(this,'+i+')"><option value="">Sin asignar</option><option value="client">Cliente</option><option value="reseller">Revendedor</option></select></div>';
-    html+='<div class="form-group"><label>Nombre</label><select data-f="aname"><option value="">-</option></select></div>';
+    html+='<div class="form-group"><label>Nombre</label>';
+    html+='<div class="ac-wrap"><input type="text" data-f="aname-input" class="ac-input" placeholder="Buscar..." autocomplete="off" ';
+    html+='oninput="acFilterSlot(this,'+i+',\'email\')" onfocus="acFilterSlot(this,'+i+',\'email\')" onblur="acBlurSlot(this)" onkeydown="acKeySlot(event,this,'+i+',\'email\')"></input>';
+    html+='<input type="hidden" data-f="aname">';
+    html+='<div class="ac-dropdown" data-acdrop="email-'+i+'" style="display:none;"></div>';
+    html+='</div></div>';
     html+='</div>';
     html+='<input type="hidden" data-f="cut" value="">';
     html+='<input type="hidden" data-f="resc" value="">';
@@ -3269,6 +3337,165 @@ function renderTrash(){
   }).join('');
 }
 var _transferAccId=null, _transferProfIdx=null;
+
+// ── Sistema de Autocompletado ─────────────────────────────────────────────────
+var _acIdx = {}; // índice activo por dropdown
+
+function acGetList(type){
+  // type: 'client','reseller','both'
+  var clients = DB.clients.map(function(c){return {id:'cli:'+c.id,name:c.name,kind:'cli'};});
+  var resellers = DB.resellers.map(function(r){return {id:'res:'+r.id,name:r.name,kind:'res'};});
+  if(type==='client') return clients;
+  if(type==='reseller') return resellers;
+  return clients.concat(resellers);
+}
+
+function acRender(dropId, items, onSelect){
+  var drop = document.getElementById(dropId)||document.querySelector('[data-acdrop="'+dropId+'"]');
+  if(!drop) return;
+  if(!items.length){ drop.style.display='none'; return; }
+  _acIdx[dropId] = -1;
+  drop.innerHTML = items.map(function(item, i){
+    var badge = item.kind==='cli'
+      ? '<span class="ac-badge ac-badge-cli">CLI</span>'
+      : '<span class="ac-badge ac-badge-res">RES</span>';
+    return '<div class="ac-option" data-idx="'+i+'" data-id="'+escH(item.id)+'" data-name="'+escH(item.name)+'" onmousedown="acSelect(\''+dropId+'\',\''+escH(item.id)+'\',\''+escH(item.name)+'\')">'+badge+escH(item.name)+'</div>';
+  }).join('');
+  drop.style.display = '';
+}
+
+function acSelect(dropId, id, name){
+  // Actualizar input visible y hidden según el dropdown
+  if(dropId==='ac-drop-assignee'){
+    document.getElementById('a-assignee-input').value = name;
+    document.getElementById('a-assignee').value = id;
+  } else if(dropId==='ac-drop-sale'){
+    document.getElementById('sale-person-input').value = name;
+    document.getElementById('sale-person-id').value = id;
+  } else {
+    // slot dropdown: data-acdrop="prof-N" or "email-N"
+    var wrap = document.querySelector('[data-acdrop="'+dropId+'"]');
+    if(wrap){
+      var sl = wrap.closest('.pslot');
+      if(sl){
+        var inp = sl.querySelector('[data-f="aname-input"]');
+        var hid = sl.querySelector('[data-f="aname"]');
+        if(inp) inp.value = name;
+        if(hid) hid.value = id;
+      }
+    }
+  }
+  var drop = document.getElementById(dropId)||document.querySelector('[data-acdrop="'+dropId+'"]');
+  if(drop) drop.style.display='none';
+}
+
+function acFilter(key){
+  var inputEl = document.getElementById('a-'+key+'-input')||document.getElementById('sale-person-input');
+  var dropId = 'ac-drop-'+key;
+  if(!inputEl) return;
+  var q = inputEl.value.toLowerCase().trim();
+  // Para 'assignee' filtrar según tipo seleccionado
+  var listType = 'both';
+  if(key==='assignee'){
+    var t = document.getElementById('a-atype').value;
+    listType = t==='client'?'client':t==='reseller'?'reseller':'both';
+  } else if(key==='sale'){
+    var pt = document.getElementById('sale-person-type').value;
+    listType = pt==='client'?'client':pt==='reseller'?'reseller':'both';
+  }
+  var list = acGetList(listType);
+  var filtered = q ? list.filter(function(x){return x.name.toLowerCase().indexOf(q)>=0;}) : list;
+  acRender(dropId, filtered.slice(0,10), null);
+}
+
+function acBlur(key){
+  setTimeout(function(){
+    var drop = document.getElementById('ac-drop-'+key);
+    if(drop) drop.style.display='none';
+  }, 200);
+}
+
+function acKey(e, key){
+  var dropId = 'ac-drop-'+key;
+  var drop = document.getElementById(dropId);
+  if(!drop||drop.style.display==='none') return;
+  var opts = drop.querySelectorAll('.ac-option');
+  var idx = _acIdx[dropId]||0;
+  if(e.key==='ArrowDown'){ e.preventDefault(); idx=Math.min(idx+1,opts.length-1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); idx=Math.max(idx-1,0); }
+  else if(e.key==='Enter'||e.key==='Tab'){
+    e.preventDefault();
+    if(opts[idx]) opts[idx].dispatchEvent(new MouseEvent('mousedown'));
+    return;
+  } else if(e.key==='Escape'){ drop.style.display='none'; return; }
+  _acIdx[dropId]=idx;
+  opts.forEach(function(o,i){ o.classList.toggle('ac-active',i===idx); });
+}
+
+// Para slots de perfil/email
+function acFilterSlot(inputEl, slotIdx, slotType){
+  var slot = inputEl.closest('.pslot');
+  if(!slot) return;
+  var dropKey = slotType+'-'+slotIdx;
+  var drop = slot.querySelector('[data-acdrop="'+dropKey+'"]');
+  if(!drop) return;
+  var q = inputEl.value.toLowerCase().trim();
+  var atypeSel = slot.querySelector('[data-f="atype"]');
+  var t = atypeSel ? atypeSel.value : '';
+  var listType = t==='client'?'client':t==='reseller'?'reseller':'both';
+  var list = acGetList(listType);
+  var filtered = q ? list.filter(function(x){return x.name.toLowerCase().indexOf(q)>=0;}) : list;
+  if(!filtered.length){ drop.style.display='none'; return; }
+  _acIdx[dropKey]=-1;
+  drop.innerHTML = filtered.slice(0,10).map(function(item,i){
+    var badge = item.kind==='cli'
+      ? '<span class="ac-badge ac-badge-cli">CLI</span>'
+      : '<span class="ac-badge ac-badge-res">RES</span>';
+    return '<div class="ac-option" data-idx="'+i+'" onmousedown="acSelectSlot(\''+dropKey+'\',\''+escH(item.id)+'\',\''+escH(item.name)+'\')">'+badge+escH(item.name)+'</div>';
+  }).join('');
+  drop.style.display='';
+}
+
+function acSelectSlot(dropKey, id, name){
+  var drop = document.querySelector('[data-acdrop="'+dropKey+'"]');
+  if(!drop) return;
+  var sl = drop.closest('.pslot');
+  if(!sl) return;
+  var inp = sl.querySelector('[data-f="aname-input"]');
+  var hid = sl.querySelector('[data-f="aname"]');
+  if(inp) inp.value = name;
+  if(hid) hid.value = id;
+  drop.style.display='none';
+}
+
+function acBlurSlot(inputEl){
+  setTimeout(function(){
+    var sl = inputEl.closest && inputEl.closest('.pslot');
+    if(!sl) return;
+    var drops = sl.querySelectorAll('.ac-dropdown');
+    drops.forEach(function(d){ d.style.display='none'; });
+  }, 200);
+}
+
+function acKeySlot(e, inputEl, slotIdx, slotType){
+  var sl = inputEl.closest('.pslot');
+  if(!sl) return;
+  var dropKey = slotType+'-'+slotIdx;
+  var drop = sl.querySelector('[data-acdrop="'+dropKey+'"]');
+  if(!drop||drop.style.display==='none') return;
+  var opts = drop.querySelectorAll('.ac-option');
+  var idx = _acIdx[dropKey]||-1;
+  if(e.key==='ArrowDown'){ e.preventDefault(); idx=Math.min(idx+1,opts.length-1); }
+  else if(e.key==='ArrowUp'){ e.preventDefault(); idx=Math.max(idx-1,0); }
+  else if(e.key==='Enter'||e.key==='Tab'){
+    e.preventDefault();
+    if(opts[idx>=0?idx:0]) opts[idx>=0?idx:0].dispatchEvent(new MouseEvent('mousedown'));
+    return;
+  } else if(e.key==='Escape'){ drop.style.display='none'; return; }
+  _acIdx[dropKey]=idx;
+  opts.forEach(function(o,i){ o.classList.toggle('ac-active',i===idx); });
+}
+
 function openTransferModal(el){
   _transferAccId=el.getAttribute('data-acc');
   _transferProfIdx=parseInt(el.getAttribute('data-prof'));
@@ -3411,14 +3638,13 @@ function openSaleModal(){
   openModal('modal-sale');
 }
 function updateSalePersonList(){
-  var type = document.getElementById('sale-person-type').value;
-  var list = type==='client' ? DB.clients : DB.resellers;
-  var sel = document.getElementById('sale-person-id');
-  if(!list.length){
-    sel.innerHTML = '<option value="">-- Sin '+( type==='client'?'clientes':'revendedores')+' --</option>';
-  } else {
-    sel.innerHTML = list.map(function(p){return '<option value="'+p.id+'">'+escH(p.name)+'</option>';}).join('');
-  }
+  // Limpiar autocomplete al cambiar tipo
+  var inp=document.getElementById('sale-person-input');
+  var hid=document.getElementById('sale-person-id');
+  var drop=document.getElementById('ac-drop-sale');
+  if(inp) inp.value='';
+  if(hid) hid.value='';
+  if(drop) drop.style.display='none';
 }
 function updateSaleAccounts(){
   var platId = document.getElementById('sale-platform').value;
