@@ -3760,6 +3760,21 @@ function updateSaleAccounts(){
   var type = document.getElementById('sale-type').value;
   var sel = document.getElementById('sale-slot');
   var opts = [];
+  // Correo individual: mostrar sus campos y salir — no necesita buscar cuentas
+  var slotSec=document.getElementById('sale-slot-section');
+  var esSec=document.getElementById('sale-emailsingle-fields');
+  var ef=document.getElementById('sale-email-fields');
+  if(type==='emailsingle'){
+    if(slotSec) slotSec.style.display='none';
+    if(esSec) esSec.style.display='';
+    if(ef) ef.style.display='none';
+    document.getElementById('sale-preview').style.display='none';
+    return;
+  }
+  // Para otros tipos: ocultar campos emailsingle
+  if(slotSec) slotSec.style.display='';
+  if(esSec) esSec.style.display='none';
+  if(ef) ef.style.display=(type==='email')?'':'none';
   DB.accounts.forEach(function(a){
     if(a.platformId !== platId) return;
     if(type==='complete'){
@@ -3795,15 +3810,6 @@ function updateSaleAccounts(){
   }
   sel._opts = opts;
   document.getElementById('sale-preview').style.display = 'none';
-  var ef=document.getElementById('sale-email-fields');
-  if(ef) ef.style.display=(type==='email')?'':'none';
-  // Correo individual: ocultar selector de slot, mostrar campos propios
-  var slotSec=document.getElementById('sale-slot-section');
-  var esSec=document.getElementById('sale-emailsingle-fields');
-  if(slotSec) slotSec.style.display=(type==='emailsingle')?'none':'';
-  if(esSec) esSec.style.display=(type==='emailsingle')?'':'none';
-  // Poblar plataformas en correo individual
-  // emailsingle usa sale-platform directamente
 }
 function resolveSalePerson(){
   var personType=document.getElementById('sale-person-type').value;
