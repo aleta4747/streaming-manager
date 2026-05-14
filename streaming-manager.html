@@ -897,14 +897,34 @@ select option{background:var(--panel2);}
           </select>
         </div>
       </div>
-      <div class="fg">
-        <label>Cuenta / Perfil disponible</label>
-        <select id="sale-slot"></select>
+      <div id="sale-slot-section">
+        <div class="fg">
+          <label>Cuenta / Perfil disponible</label>
+          <select id="sale-slot"></select>
+        </div>
+        <div id="sale-email-fields" style="display:none;">
+          <div class="fr" style="margin-top:10px;">
+            <div class="fg"><label>Correo del slot</label><input type="text" id="sale-email-val" placeholder="correo@ejemplo.com"></div>
+            <div class="fg"><label>Clave del slot</label><input type="text" id="sale-clave-val" placeholder="Clave..."></div>
+          </div>
+        </div>
       </div>
-      <div id="sale-email-fields" style="display:none;">
-        <div class="fr" style="margin-top:10px;">
-          <div class="fg"><label>Correo del slot</label><input type="text" id="sale-email-val" placeholder="correo@ejemplo.com"></div>
-          <div class="fg"><label>Clave del slot</label><input type="text" id="sale-clave-val" placeholder="Clave..."></div>
+      <!-- Campos para correo individual -->
+      <div id="sale-emailsingle-fields" style="display:none;">
+        <div class="fr">
+          <div class="fg"><label>Correo</label><input type="text" id="sale-es-email" placeholder="correo@ejemplo.com"></div>
+          <div class="fg"><label>Clave</label><input type="text" id="sale-es-pass" placeholder="Clave..."></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Método de facturación</label><input type="text" id="sale-es-billing" placeholder="Ej: Tarjeta..."></div>
+          <div class="fg"><label>Proveedor</label><input type="text" id="sale-es-provider" placeholder="Proveedor..."></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>¿Google Play?</label><select id="sale-es-gplay"><option value="">Sin especificar</option><option value="yes">Sí</option><option value="no">No</option></select></div>
+          <div class="fg"><label>Costo mensual (USD $)</label><input type="number" id="sale-es-cost" placeholder="0.00" min="0" step="0.01"></div>
+        </div>
+        <div class="fr">
+          <div class="fg"><label>Notas del cliente</label><input type="text" id="sale-es-cnotes" placeholder="Observaciones..."></div>
         </div>
       </div>
       <div class="fr">
@@ -1637,7 +1657,9 @@ function saveAccount(){
   var pass=document.getElementById('a-pass').value.trim();
   var platId=document.getElementById('a-platform').value;
   var type=document.getElementById('a-type').value;
-  if(!email||!pass||!platId){toast('Completa los campos requeridos','warn');return;}
+  var isES=type==='emailsingle';
+  if(!platId){toast('Selecciona una plataforma','warn');return;}
+  if(!isES&&(!email||!pass)){toast('Completa los campos requeridos','warn');return;}
   var data={id:editAccId||uid(),platformId:platId,email:email,password:pass,type:type,
     expiry:document.getElementById('a-expiry').value,
     notes:document.getElementById('a-notes').value.trim(),
@@ -2777,8 +2799,10 @@ function switchReloadTab(tab){
 }
 function getReloadScopeItems(){
   // Todas las cuentas con fecha de vencimiento (expiry), sin filtrar por cliente
+  // Excluir emailsingle — no tiene recarga propia
   var items=[];
   DB.accounts.forEach(function(a){
+    if(a.type==='emailsingle') return; // no requiere recarga
     var exp=a.expiry;
     if(!exp) return;
     var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'var(--neon)'};
@@ -3746,6 +3770,13 @@ function updateSaleAccounts(){
   document.getElementById('sale-preview').style.display = 'none';
   var ef=document.getElementById('sale-email-fields');
   if(ef) ef.style.display=(type==='email')?'':'none';
+  // Correo individual: ocultar selector de slot, mostrar campos propios
+  var slotSec=document.getElementById('sale-slot-section');
+  var esSec=document.getElementById('sale-emailsingle-fields');
+  if(slotSec) slotSec.style.display=(type==='emailsingle')?'none':'';
+  if(esSec) esSec.style.display=(type==='emailsingle')?'':'none';
+  // Poblar plataformas en correo individual
+  // emailsingle usa sale-platform directamente
 }
 function getSaleData(){
   var platId = document.getElementById('sale-platform').value;
@@ -3775,7 +3806,69 @@ function getSaleData(){
   var person = personId ? personList.find(function(x){return x.id===personId;}) : null;
   return {a:a, p:p, pr:pr, duration:duration, person:person, chosen:chosen, type:type};
 }
+function confirmSaleEmailSingle(){
+  var platId=document.getElementById('sale-platform').value;
+  var emailVal=document.getElementById('sale-es-email').value.trim();
+  var passVal=document.getElementById('sale-es-pass').value.trim();
+  var personType=document.getElementById('sale-person-type').value;
+  var personId=document.getElementById('sale-person-id').value;
+  var dur=document.getElementById('sale-duration').value;
+  var startDate=document.getElementById('sale-start').value||todayStrVE();
+  if(!platId){toast('Selecciona una plataforma','warn');return;}
+  if(!emailVal||!passVal){toast('Ingresa correo y clave','warn');return;}
+  if(!personId){toast('Selecciona un cliente','warn');return;}
+  // Calcular fecha de vencimiento
+  var start=new Date(startDate);
+  var expiry=new Date(start.getTime()+parseInt(dur)*86400000).toISOString().slice(0,10);
+  var personList=personType==='client'?DB.clients:DB.resellers;
+  // Extraer ID real si tiene prefijo
+  var realPersonId=personId.startsWith('cli:')?personId.slice(4):personId.startsWith('res:')?personId.slice(4):personId;
+  var person=personList.find(function(x){return x.id===realPersonId;});
+  if(!person){toast('Cliente no encontrado','warn');return;}
+  // Crear la cuenta nueva
+  var newAcc={
+    id:uid(), platformId:platId, type:'emailsingle',
+    email:'', password:'',
+    expiry:'', notes:'',
+    billing:document.getElementById('sale-es-billing').value.trim(),
+    provider:document.getElementById('sale-es-provider').value.trim(),
+    googlePlay:document.getElementById('sale-es-gplay').value,
+    cost:document.getElementById('sale-es-cost').value,
+    profiles:[{
+      id:uid(), idx:0,
+      name:emailVal, pin:passVal,
+      assignType:personType, assigneeId:realPersonId,
+      resellerClient:'',
+      expiry:expiry, cutDate:expiry,
+      cnotes:document.getElementById('sale-es-cnotes').value.trim()
+    }]
+  };
+  DB.accounts.push(newAcc);
+  // Construir mensaje
+  var p=DB.platforms.find(function(x){return x.id===platId;})||{name:'?'};
+  var fakePr={name:emailVal,pin:passVal};
+  var txt=buildEmailMsg(newAcc,p,fakePr,dur);
+  addHistory('ASIGNAR','Correo individual vendido: '+person.name,'Plataforma: '+p.name+' | Correo: '+emailVal+' | Vence: '+expiry);
+  saveDB(); updateCounts();
+  if(navigator.clipboard&&navigator.clipboard.writeText){
+    navigator.clipboard.writeText(txt).then(function(){toast('Venta registrada y datos copiados','success');}).catch(function(){mobileCopyFallback(txt);toast('Venta registrada','success');});
+  } else { mobileCopyFallback(txt); toast('Venta registrada','success'); }
+  closeModal('modal-sale');
+  renderAccounts();
+}
 function previewSale(){
+  var type=document.getElementById('sale-type').value;
+  if(type==='emailsingle'){
+    var platId=document.getElementById('sale-platform').value;
+    var p=DB.platforms.find(function(x){return x.id===platId;})||{name:'?'};
+    var fakeAcc={type:'emailsingle',email:'',password:''};
+    var fakePr={name:document.getElementById('sale-es-email').value,pin:document.getElementById('sale-es-pass').value};
+    var dur=document.getElementById('sale-duration').value;
+    var txt=buildEmailMsg(fakeAcc,p,fakePr,dur);
+    document.getElementById('sale-preview-txt').textContent=txt;
+    document.getElementById('sale-preview').style.display='';
+    return;
+  }
   var d = getSaleData();
   if(!d){ toast('Selecciona una cuenta o perfil disponible','warn'); return; }
   var txt = (d.type==='email' && d.pr) ? buildEmailMsg(d.a, d.p, d.pr, d.duration) : buildMsg(d.a, d.p, d.pr, d.duration);
@@ -3783,6 +3876,12 @@ function previewSale(){
   document.getElementById('sale-preview').style.display = 'block';
 }
 function confirmSale(){
+  var type=document.getElementById('sale-type').value;
+  // Correo individual: crear cuenta nueva directamente
+  if(type==='emailsingle'){
+    confirmSaleEmailSingle();
+    return;
+  }
   var d = getSaleData();
   if(!d){ toast('Selecciona una cuenta o perfil disponible','warn'); return; }
   if(!d.person){ toast('Selecciona un cliente o revendedor','warn'); return; }
