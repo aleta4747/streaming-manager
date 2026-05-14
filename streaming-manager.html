@@ -1733,7 +1733,14 @@ function saveAccount(){
         if(anameVal.startsWith('cli:')){realType='client';realId=anameVal.slice(4);}
         else if(anameVal.startsWith('res:')){realType='reseller';realId=anameVal.slice(4);}
         var ecnotesEl=esl.querySelector('[data-f="cnotes"]');
-        data.profiles.push({idx:i,name:esl.querySelector('[data-f="name"]').value.trim(),pin:esl.querySelector('[data-f="pin"]').value.trim(),assignType:realType,assigneeId:realId,resellerClient:'',cutDate:expVal,expiry:expVal,cnotes:ecnotesEl?ecnotesEl.value.trim():''});
+        var slotName=esl.querySelector('[data-f="name"]').value.trim();
+        var slotPin=esl.querySelector('[data-f="pin"]').value.trim();
+        // Para emailsingle guardar correo/clave también en la cuenta principal
+        if(type==='emailsingle'&&i===0){
+          data.email=slotName;
+          data.password=slotPin;
+        }
+        data.profiles.push({idx:i,name:slotName,pin:slotPin,assignType:realType,assigneeId:realId,resellerClient:'',cutDate:expVal,expiry:expVal,cnotes:ecnotesEl?ecnotesEl.value.trim():''});
       })();
     }
   }
