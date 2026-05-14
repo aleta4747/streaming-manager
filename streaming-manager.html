@@ -1182,16 +1182,6 @@ function initSettings(){
   if(di) di.value=_cfgDate||'';
   if(ti) ti.value=_cfgTime||'';
   if(st) st.textContent=_cfgDate?'Usando fecha manual: '+_cfgDate+' '+(_cfgTime||'00:00'):'Usando hora real del dispositivo';
-  // Reconexión automática Drive si estaba conectado antes
-  if(localStorage.getItem('sag8_drive_connected')==='1' && !_driveToken){
-    var savedEmail=localStorage.getItem('sag8_drive_email')||'Google';
-    driveSetStatus('Reconectando...');
-    setTimeout(function(){
-      try{ driveSignIn(true); }catch(e){ driveSetStatus('Conecta de nuevo'); }
-    },1000);
-  } else if(_driveToken){
-    driveShowConnected(localStorage.getItem('sag8_drive_email')||'Google');
-  }
 }
 // ── Funciones de fecha con soporte de config manual ──────────────────────
 function nowVE(){
@@ -3558,6 +3548,17 @@ function confirmSale(){
   }
   if(currentView==='dashboard') renderDashboard();
 }
+// Limpiar datos demo si existen (IDs fijos del seedDemo)
+(function(){
+  var isDemoData = DB.platforms.some(function(p){
+    return p.id==='p1'||p.id==='p2'||p.id==='p3';
+  });
+  if(isDemoData){
+    DB={platforms:[],accounts:[],clients:[],resellers:[],trash:[]};
+    saveDB();
+    console.log('Datos demo eliminados');
+  }
+})();
 loadDB();updateCounts();
 if(!checkSession()){
   // Mostrar pantalla de login
