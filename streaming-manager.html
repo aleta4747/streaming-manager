@@ -2092,7 +2092,7 @@ function buildAccCard(a,p){
           '<div style="grid-column:span 2;">'+mkCred('Correo',escH(a.email),a.email)+'</div>'+
           mkCred('Clave',escH(a.password),a.password)+
           (person?mkCredPlain('Asignado',escH(person.name)):'')+
-          (a.cutDate?(function(){var dlC=getDaysLeft(a.cutDate);var warnC=dlC<0;var urgC=!warnC&&dlC<=3;var lblC=dlC<0?'vencido':dlC===0?'hoy':dlC===1?'1d':dlC+'d';return mkCredPlain('Vence (cliente)',escH(a.cutDate)+' <span style="font-family:Share Tech Mono,monospace;font-size:11px;padding:1px 6px;border-radius:2px;border:1px solid;margin-left:4px;'+(warnC?'color:var(--danger);border-color:var(--danger);background:var(--danger-dim);':urgC?'color:var(--warn);border-color:var(--warn);background:rgba(255,200,0,0.08);':'color:var(--neon2);border-color:var(--neon2);background:rgba(0,200,255,0.06);')+'">'+lblC+'</span>');})()):'')+
+          (a.cutDate?mkCutDate('Vence (cliente)',a.cutDate):'')+
           (a.resellerClient?mkCredPlain('Cliente final',escH(a.resellerClient)):'')+
         '</div>'+
         '<div style="display:flex;gap:8px;margin-top:10px;">'+
@@ -2137,6 +2137,15 @@ function mkCred(lbl,display,val){
 }
 function mkCredPlain(lbl,display){
   return '<div class="cred-item"><div class="cred-k">'+lbl+'</div><div class="cred-v" style="cursor:default;color:var(--text)">'+display+'</div></div>';
+}
+function mkCutDate(lbl,dateStr){
+  if(!dateStr) return '';
+  var dl=getDaysLeft(dateStr);
+  var isW=dl<0; var isU=!isW&&dl<=3;
+  var lbl2=dl<0?'vencido':dl===0?'hoy':dl+'d';
+  var st=isW?'color:var(--danger);border-color:var(--danger);background:var(--danger-dim)':isU?'color:var(--warn);border-color:var(--warn);background:rgba(255,200,0,0.08)':'color:var(--neon2);border-color:var(--neon2);background:rgba(0,200,255,0.06)';
+  var badge='<span style="font-family:Share Tech Mono,monospace;font-size:11px;padding:1px 6px;border-radius:2px;border:1px solid;margin-left:5px;'+st+'">'+lbl2+'</span>';
+  return '<div class="cred-item"><div class="cred-k">'+lbl+'</div><div class="cred-v" style="cursor:default;color:var(--text);display:flex;align-items:center;">'+escH(dateStr)+badge+'</div></div>';
 }
 
 function getDaysLeft(exp){
