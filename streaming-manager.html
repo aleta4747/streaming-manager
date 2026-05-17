@@ -1323,6 +1323,17 @@ function showView(id){
   else if(id==='history')renderHistory();
 }
 
+function goToPlatformFilter(platId, email){
+  showView('platforms');
+  selPlatId = platId;
+  var si = document.getElementById('search-acc');
+  if(si){ si.value = email; }
+  renderPlatforms();
+  setTimeout(function(){
+    var btn = document.getElementById('pb-'+platId);
+    if(btn) btn.scrollIntoView({behavior:'smooth', block:'nearest'});
+  }, 100);
+}
 function openModal(id){document.getElementById(id).classList.add('open');}
 function closeModal(id){document.getElementById(id).classList.remove('open');}
 function openQuickAdd(){openModal('modal-quick');}
@@ -2555,7 +2566,7 @@ function renderAlerts(tab){
         return '<div style="display:flex;align-items:center;justify-content:space-between;padding:9px 14px;">'+
           '<div>'+
             '<div style="font-size:14px;font-weight:700;color:var(--text-bright);">'+escH(item.platName)+
-              ' — <span style="font-family:Share Tech Mono,monospace;color:var(--neon);">'+escH(parts[0])+'</span>'+
+              ' — <span style="font-family:Share Tech Mono,monospace;color:var(--neon);cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="goToPlatformFilter(\''+escH(item.platId||'')+'\',\''+escH(parts[0])+'\'\)" title="Ver en plataforma">'+escH(parts[0])+'</span>'+
               (parts[1]?' <span style="color:var(--text-dim);font-size:12px;">('+escH(parts[1])+')</span>':'')+
               ' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid;margin-left:4px;'+(item.accType==='email'?'color:var(--neon3);border-color:var(--neon3);':item.accType==='complete'?'color:var(--neon3);border-color:var(--neon3);':'color:var(--neon3);border-color:var(--neon3);')+'">'+
               (item.accType==='email'?'CORREO':item.accType==='complete'?'COMPLETA':'PERFIL')+
@@ -2835,7 +2846,7 @@ function getReloadScopeItems(){
     if(!exp) return;
     var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'var(--neon)'};
     var typeLbl=a.type==='complete'?'Completa':a.type==='email'?'Por correo':'Por perfil';
-    items.push({expiry:exp,label:a.email,platName:p.name,platColor:p.color||'var(--neon)',typeLbl:typeLbl,accId:a.id});
+    items.push({expiry:exp,label:a.email,platName:p.name,platColor:p.color||'var(--neon)',typeLbl:typeLbl,accId:a.id,platId:a.platformId});
   });
   return items;
 }
@@ -2868,7 +2879,7 @@ function renderReloads(tab){
       '<div>'+
         '<div style="font-size:14px;font-weight:700;color:var(--text-bright);">'+
           '<span style="color:'+escH(item.platColor||'var(--neon3)')+';font-weight:800;margin-right:8px;">'+escH(item.platName)+'</span>'+
-          '<span style="font-family:Share Tech Mono,monospace;color:var(--neon);font-size:13px;">'+escH(item.label)+'</span>'+
+          '<span style="font-family:Share Tech Mono,monospace;color:var(--neon);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="goToPlatformFilter(\''+escH(item.platId||'')+'\',\''+escH(item.label)+'\'\)" title="Ver en plataforma">'+escH(item.label)+'</span>'+
           ' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--neon3);color:var(--neon3);margin-left:6px;">'+escH(item.typeLbl)+'</span>'+
         '</div>'+
         '<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">Vence cuenta: '+escH(item.expiry)+'</div>'+
@@ -2890,7 +2901,7 @@ function getExpiryScopeItems(){
         var per=a.assigneeId?list.find(function(x){return x.id===a.assigneeId;}):null;
         items.push({expiry:expAlert,label:a.email,platName:pn,typeLbl:'Cuenta completa',
           assignedTo:per?per.name:null,personId:per?per.id:null,
-          accType:'complete',accId:a.id,profIdx:null,
+          accType:'complete',accId:a.id,profIdx:null,platId:a.platformId,
           phone:per?per.phone||'':'' ,telegram:per?per.telegram||'':''});
       }
     }else if(a.profiles){
@@ -2901,7 +2912,7 @@ function getExpiryScopeItems(){
           var per3=pr.assigneeId?list3.find(function(x){return x.id===pr.assigneeId;}):null;
           items.push({expiry:exp,label:a.email+' - '+pr.name,platName:pn,typeLbl:(a.type==='email'||a.type==='emailsingle')?'Correo':'Perfil',
             assignedTo:per3?per3.name:null,personId:per3?per3.id:null,
-            accType:(a.type==='emailsingle'?'email':a.type),accId:a.id,profIdx:a.profiles.indexOf(pr),
+            accType:(a.type==='emailsingle'?'email':a.type),accId:a.id,profIdx:a.profiles.indexOf(pr),platId:a.platformId,
             phone:per3?per3.phone||'':'',telegram:per3?per3.telegram||'':''});
         }
       });
