@@ -1325,13 +1325,18 @@ function showView(id){
 
 function goToPlatformFilter(platId, email){
   showView('platforms');
-  selPlatId = platId;
+  // Filtrar por plataforma en el dropdown
+  var fp = document.getElementById('filter-plat');
+  if(fp) fp.value = platId;
+  // Poner el correo en la barra de búsqueda
   var si = document.getElementById('search-acc');
-  if(si){ si.value = email; }
-  renderPlatforms();
+  if(si) si.value = email;
+  // Renderizar con los filtros aplicados
+  renderAccounts();
+  // Scroll al inicio de la lista
   setTimeout(function(){
-    var btn = document.getElementById('pb-'+platId);
-    if(btn) btn.scrollIntoView({behavior:'smooth', block:'nearest'});
+    var el = document.getElementById('accounts-list');
+    if(el) el.scrollIntoView({behavior:'smooth', block:'start'});
   }, 100);
 }
 function openModal(id){document.getElementById(id).classList.add('open');}
