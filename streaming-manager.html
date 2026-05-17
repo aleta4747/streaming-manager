@@ -3263,9 +3263,8 @@ function changeAccExpiry(accId){
   if(newDate===null) return;
   newDate=newDate.trim();
   acc.cutDate=newDate; // solo la fecha de corte del cliente
-  var _eAcc=DB.accounts.find(function(x){return x.id===accId;});
-  var _eP=_eAcc?DB.platforms.find(function(x){return x.id===_eAcc.platformId;})||{name:'?'}:{name:'?'};
-  addHistory('RENOVAR','Fecha renovada: '+(_eAcc?_eAcc.profiles[profIdx].name:''),'Cuenta: '+(_eAcc?_eAcc.email:'')+' | Nueva fecha: '+newDate+' | Plataforma: '+_eP.name);
+  var _eP=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
+  addHistory('RENOVAR','Fecha de cliente renovada: '+acc.email,'Nueva fecha: '+newDate+' | Plataforma: '+_eP.name);
   saveDB(); updateCounts(); renderAccounts();
   toast('Fecha actualizada','success');
 }
