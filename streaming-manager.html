@@ -2102,6 +2102,7 @@ function buildAccCard(a,p){
     return '<div class="acc-card">'+
       '<div class="acc-hd">'+
         '<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">COMPLETA</span>'+
+        +(a.provider?'<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:2px;">'+escH(a.provider)+'<\/span>':'')+
         '<span class="acc-email">'+escH(a.email)+'</span>'+
         '<span class="acc-pass">/ '+escH(a.password)+'</span>'+
         stBadge+
@@ -2140,6 +2141,7 @@ function buildAccCard(a,p){
     return '<div class="acc-card">'+
       '<div class="acc-hd">'+
         (a.type==='email'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR CORREO</span>':a.type==='emailsingle'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">CORREO IND.</span>':'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR PERFIL</span>')+
+        +(a.provider?'<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:2px;">'+escH(a.provider)+'<\/span>':'')+
         '<span class="acc-email">'+escH(a.email)+'</span>'+
         '<span class="acc-pass">/ '+escH(a.password)+'</span>'+
         stBadge+
@@ -2867,7 +2869,7 @@ function getReloadScopeItems(){
     if(!exp) return;
     var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'var(--neon)'};
     var typeLbl=a.type==='complete'?'Completa':a.type==='email'?'Por correo':'Por perfil';
-    items.push({expiry:exp,label:a.email,platName:p.name,platColor:p.color||'var(--neon)',typeLbl:typeLbl,accId:a.id,platId:a.platformId});
+    items.push({expiry:exp,label:a.email,platName:p.name,platColor:p.color||'var(--neon)',typeLbl:typeLbl,accId:a.id,platId:a.platformId,provider:a.provider||''});
   });
   return items;
 }
@@ -2902,10 +2904,14 @@ function renderReloads(tab){
           '<span style="color:'+escH(item.platColor||'var(--neon3)')+';font-weight:800;margin-right:8px;">'+escH(item.platName)+'</span>'+
           '<span style="font-family:Share Tech Mono,monospace;color:var(--neon);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="goToPlatformFilter(\''+escH(item.platId||'')+'\',\''+escH(item.label)+'\'\)" title="Ver en plataforma">'+escH(item.label)+'</span>'+
           ' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--neon3);color:var(--neon3);margin-left:6px;">'+escH(item.typeLbl)+'</span>'+
+          (item.provider?' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:4px;">'+escH(item.provider)+'<\/span>':'')+
         '</div>'+
         '<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">Vence cuenta: '+escH(item.expiry)+'</div>'+
       '</div>'+
-      '<span class="status '+dl.cls+'"><span class="dot"></span>'+dl.lbl+'</span>'+
+      '<div style="display:flex;align-items:center;gap:10px;">'+
+        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="quickRenew(\''+item.accId+'\',null)" title="Registrar recarga y actualizar fecha">&#8635; Recargada</button>'+
+        '<span class="status '+dl.cls+'"><span class="dot"></span>'+dl.lbl+'</span>'+
+      '</div>'+
     '</div>';
   }).join('');
 }
