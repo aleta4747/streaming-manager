@@ -2102,7 +2102,7 @@ function buildAccCard(a,p){
     return '<div class="acc-card">'+
       '<div class="acc-hd">'+
         '<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">COMPLETA</span>'+
-        +(a.provider?'<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:2px;">'+escH(a.provider)+'<\/span>':'')+
+        (a.provider?'<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:2px;">'+escH(a.provider)+'<\/span>':'')+
         '<span class="acc-email">'+escH(a.email)+'</span>'+
         '<span class="acc-pass">/ '+escH(a.password)+'</span>'+
         stBadge+
@@ -2141,7 +2141,7 @@ function buildAccCard(a,p){
     return '<div class="acc-card">'+
       '<div class="acc-hd">'+
         (a.type==='email'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR CORREO</span>':a.type==='emailsingle'?'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">CORREO IND.</span>':'<span class="acc-badge" style="border-color:var(--neon3);color:var(--neon3);">POR PERFIL</span>')+
-        +(a.provider?'<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:2px;">'+escH(a.provider)+'<\/span>':'')+
+        (a.provider?'<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:2px;">'+escH(a.provider)+'<\/span>':'')+
         '<span class="acc-email">'+escH(a.email)+'</span>'+
         '<span class="acc-pass">/ '+escH(a.password)+'</span>'+
         stBadge+
@@ -2495,10 +2495,16 @@ function quickRenew(accId, profIdx){
   var plat=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
   var current='';
   var label='';
+  var reloadMode=(profIdx==='expiry'); // modo recarga: actualiza acc.expiry
+  if(reloadMode) profIdx=null;
   if(profIdx===null||profIdx===undefined){
-    // Cuenta completa → renovar cutDate
-    current=acc.cutDate||acc.expiry||'';
-    label='Cuenta: '+acc.email;
+    if(reloadMode){
+      current=acc.expiry||'';
+      label='Recarga cuenta: '+acc.email;
+    } else {
+      current=acc.cutDate||acc.expiry||'';
+      label='Cuenta: '+acc.email;
+    }
   } else {
     var pr=acc.profiles[profIdx];
     current=pr.expiry||pr.cutDate||'';
@@ -2508,7 +2514,11 @@ function quickRenew(accId, profIdx){
   if(newDate===null) return;
   newDate=newDate.trim();
   if(profIdx===null||profIdx===undefined){
-    acc.cutDate=newDate;
+    if(reloadMode){
+      acc.expiry=newDate;
+    } else {
+      acc.cutDate=newDate;
+    }
   } else {
     acc.profiles[profIdx].expiry=newDate;
     acc.profiles[profIdx].cutDate=newDate;
@@ -2909,7 +2919,7 @@ function renderReloads(tab){
         '<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">Vence cuenta: '+escH(item.expiry)+'</div>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:10px;">'+
-        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="quickRenew(\''+item.accId+'\',null)" title="Registrar recarga y actualizar fecha">&#8635; Recargada</button>'+
+        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="quickRenew(\''+item.accId+'\',\'expiry\')" title="Registrar recarga y actualizar fecha">&#8635; Recargada</button>'+
         '<span class="status '+dl.cls+'"><span class="dot"></span>'+dl.lbl+'</span>'+
       '</div>'+
     '</div>';
