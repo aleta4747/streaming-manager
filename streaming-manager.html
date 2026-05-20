@@ -4057,53 +4057,67 @@ function confirmSale(){
 }
 // ── DESCARGAR LIBRES ──────────────────────────────────────────
 function downloadLibres(){
-  var rows = [];
+  var rowsPerf = []; // perfil + correo
+  var rowsComp = []; // completas
+
   DB.accounts.forEach(function(acc){
     var plat = DB.platforms.find(function(p){return p.id===acc.platformId;})||{};
     var platName = plat.name||'';
     var type = acc.type||'complete';
 
-    // Solo exportar tipos: perfil y correo (no completa, no emailsingle)
     if(type==='profile'||type==='email'){
       var profiles = acc.profiles||[];
       profiles.forEach(function(pr){
         if(!pr.assigneeId){
-          rows.push({plataforma:platName,correo:acc.email||'',contrasena:acc.password||'',usuario:pr.name||'',pin:pr.pin||'',meses:'',estado:'disponible',nota:acc.notes||''});
+          rowsPerf.push({plataforma:platName,correo:acc.email||'',contrasena:acc.password||'',usuario:pr.name||'',pin:pr.pin||'',meses:'',estado:'disponible',nota:acc.notes||''});
         }
       });
+    } else if(type==='complete'){
+      if(!acc.assigneeId){
+        rowsComp.push({plataforma:platName,correo:acc.email||'',contrasena:acc.password||'',usuario:'',pin:'',meses:'',estado:'disponible',nota:acc.notes||''});
+      }
     }
   });
 
-  // Ordenar por nombre de plataforma
-  rows.sort(function(a,b){ return a.plataforma.localeCompare(b.plataforma); });
+  rowsPerf.sort(function(a,b){ return a.plataforma.localeCompare(b.plataforma); });
+  rowsComp.sort(function(a,b){ return a.plataforma.localeCompare(b.plataforma); });
+  var rows = rowsPerf; // para el contador del toast
 
-  if(!rows.length){
+  if(!rowsPerf.length && !rowsComp.length){
     document.getElementById('libres-status').textContent='No hay cuentas libres para exportar.';
     setTimeout(function(){document.getElementById('libres-status').textContent='';},3000);
     return;
   }
 
-  // Generar xlsx real con SheetJS
   if(!window.XLSX){ toast('Librería Excel no disponible, recarga la página','warn'); return; }
-  var wsData = [
+
+  var HDRS = [
     ['📦  CARGADOR DE STOCK — Streaming AleTaG8','','','','','','',''],
     ['Completa los campos y sube este archivo desde el panel Admin → Stock → 📥 Importar Excel','','','','','','',''],
     ['Plataforma *','Correo','Contraseña','Usuario','PIN','Meses de servicio *','Estado *','Nota importante'],
     ['Nombre exacto del producto (ej: Netflix Premium)','Correo electrónico de la cuenta','Contraseña de la cuenta','Nombre de usuario (si aplica)','PIN o código extra (si aplica)','Duración en meses: 1, 2, 3, 6 o 12','disponible / vendido / reservado','Instrucciones o información especial']
   ];
-  rows.forEach(function(r){
-    wsData.push([r.plataforma,r.correo,r.contrasena,r.usuario,r.pin,r.meses,r.estado,r.nota]);
-  });
-  var ws = XLSX.utils.aoa_to_sheet(wsData);
-  ws['!cols'] = [{wch:30},{wch:30},{wch:20},{wch:18},{wch:10},{wch:18},{wch:14},{wch:30}];
+  var COLS = [{wch:30},{wch:30},{wch:20},{wch:18},{wch:10},{wch:18},{wch:14},{wch:30}];
+
+  function buildSheet(rowArr){
+    var data = HDRS.map(function(r){return r.slice();});
+    rowArr.forEach(function(r){ data.push([r.plataforma,r.correo,r.contrasena,r.usuario,r.pin,r.meses,r.estado,r.nota]); });
+    var ws = XLSX.utils.aoa_to_sheet(data);
+    ws['!cols'] = COLS;
+    return ws;
+  }
+
   var wb = XLSX.utils.book_new();
-  XLSX.utils.book_append_sheet(wb, ws, 'Carga de Cuentas');
+  if(rowsPerf.length) XLSX.utils.book_append_sheet(wb, buildSheet(rowsPerf), 'Perfil y Correo');
+  if(rowsComp.length) XLSX.utils.book_append_sheet(wb, buildSheet(rowsComp), 'Completas');
+
   var now2 = new Date();
   var dateStr = now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-'+String(now2.getDate()).padStart(2,'0');
   XLSX.writeFile(wb, 'stock_libres_'+dateStr+'.xlsx');
-  document.getElementById('libres-status').textContent='✓ '+rows.length+' cuenta(s) exportadas correctamente.';
-  setTimeout(function(){document.getElementById('libres-status').textContent='';},4000);
-  addHistory('EXPORTAR','Descarga de cuentas libres','Total exportadas: '+rows.length);
+  var total = rowsPerf.length + rowsComp.length;
+  document.getElementById('libres-status').textContent='✓ '+total+' cuenta(s) exportadas ('+rowsPerf.length+' perfil/correo, '+rowsComp.length+' completas).';
+  setTimeout(function(){document.getElementById('libres-status').textContent='';},5000);
+  addHistory('EXPORTAR','Descarga de cuentas libres','Perfil/Correo: '+rowsPerf.length+' | Completas: '+rowsComp.length);
 }
 // ─────────────────────────────────────────────────────────────
 
