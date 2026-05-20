@@ -4063,28 +4063,19 @@ function downloadLibres(){
     var platName = plat.name||'';
     var type = acc.type||'complete';
 
-    if(type==='complete'){
-      // Cuenta completa libre = sin assigneeId
-      if(!acc.assigneeId){
-        rows.push({plataforma:platName,correo:acc.email||'',contrasena:acc.password||'',usuario:'',pin:'',meses:'',estado:'disponible',nota:acc.notes||''});
-      }
-    } else if(type==='profile'||type==='email'){
-      // Cuenta con perfiles: exportar cada perfil libre
+    // Solo exportar tipos: perfil y correo (no completa, no emailsingle)
+    if(type==='profile'||type==='email'){
       var profiles = acc.profiles||[];
       profiles.forEach(function(pr){
         if(!pr.assigneeId){
           rows.push({plataforma:platName,correo:acc.email||'',contrasena:acc.password||'',usuario:pr.name||'',pin:pr.pin||'',meses:'',estado:'disponible',nota:acc.notes||''});
         }
       });
-    } else if(type==='emailsingle'){
-      // Correo individual libre = sin assigneeId
-      if(!acc.assigneeId){
-        var profiles2 = acc.profiles||[];
-        var pr0 = profiles2[0]||{};
-        rows.push({plataforma:platName,correo:pr0.name||acc.email||'',contrasena:pr0.pin||acc.password||'',usuario:'',pin:'',meses:'',estado:'disponible',nota:acc.notes||''});
-      }
     }
   });
+
+  // Ordenar por nombre de plataforma
+  rows.sort(function(a,b){ return a.plataforma.localeCompare(b.plataforma); });
 
   if(!rows.length){
     document.getElementById('libres-status').textContent='No hay cuentas libres para exportar.';
