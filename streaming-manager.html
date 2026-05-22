@@ -452,7 +452,7 @@ select option{background:var(--panel2);}
       <div class="topbar-title" id="page-title">Dashboard</div>
       <div class="topbar-search">
         <span style="color:var(--text-dim);font-size:14px;">&#128269;</span>
-        <input type="text" id="global-search" placeholder="Buscar por correo, cliente o revendedor..." oninput="runGlobalSearch()" autocomplete="off">
+        <input type="text" id="global-search" placeholder="Buscar por correo, clave, PIN, perfil, cliente, plataforma..." oninput="runGlobalSearch()" autocomplete="off">
         <button class="gs-clear" onclick="clearGlobalSearch()" style="display:none" id="gs-clear-btn">&#10005;</button>
       </div>
       <div class="topbar-actions">
@@ -3210,44 +3210,32 @@ function runGlobalSearch(){
   if(!q){ panel.style.display='none'; return; }
   panel.style.display = 'block';
   var results = [];
-  // Search by email
+  var allPersons = [].concat(DB.clients, DB.resellers);
+  function getPer(assigneeId, assignType){
+    var list = assignType==='reseller' ? DB.resellers : DB.clients;
+    return assigneeId ? list.find(function(x){return x.id===assigneeId;})||null : null;
+  }
   DB.accounts.forEach(function(a){
-    if(a.email.toLowerCase().indexOf(q) >= 0){
-      var p = DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'#fff'};
-      var st = getAccStatus(a);
-      if(a.type==='complete'){
-        var list=a.assignType==='client'?DB.clients:DB.resellers;
-        var per=a.assigneeId?list.find(function(x){return x.id===a.assigneeId;}):null;
-        results.push({platName:p.name,platColor:p.color,label:a.email,sub:'Cuenta completa',assigned:per?per.name:'Sin asignar',expiry:a.expiry||'',status:st,accId:a.id,profIdx:'',platId:a.platformId});
-      } else if(a.profiles){
-        a.profiles.forEach(function(pr,i){
-          var list2=pr.assignType==='client'?DB.clients:DB.resellers;
-          var per2=pr.assigneeId?list2.find(function(x){return x.id===pr.assigneeId;}):null;
+    var p = DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'#fff'};
+    var st = getAccStatus(a);
+    if(a.type==='complete'){
+      var per = getPer(a.assigneeId, a.assignType);
+      // Fields: email, password, platform, assigned name, resellerClient, notes, provider
+      var haystack = [a.email, a.password, p.name, per?per.name:'', a.resellerClient||'', a.notes||'', a.provider||''].join(' ').toLowerCase();
+      if(haystack.indexOf(q)>=0){
+        results.push({platName:p.name,platColor:p.color,label:a.email,sub:'Cuenta completa'+(a.password?' | Clave: '+a.password:''),assigned:per?per.name:'Sin asignar',expiry:a.expiry||'',status:st,accId:a.id,profIdx:'',platId:a.platformId});
+      }
+    } else if(a.profiles){
+      a.profiles.forEach(function(pr,i){
+        var per2 = getPer(pr.assigneeId, pr.assignType);
+        // Fields: email, password, profile name, pin, platform, assigned, resellerClient, notes, provider
+        var haystack2 = [a.email, a.password, pr.name, pr.pin||'', p.name, per2?per2.name:'', pr.resellerClient||'', a.notes||'', a.provider||''].join(' ').toLowerCase();
+        if(haystack2.indexOf(q)>=0){
           var pst = pr.expiry ? (new Date(pr.expiry)<nowVE()?'expired':'active') : 'active';
-          results.push({platName:p.name,platColor:p.color,label:a.email+' / '+pr.name,sub:'Perfil'+(pr.pin?' | PIN: '+pr.pin:''),assigned:per2?per2.name:'Libre',expiry:pr.expiry||'',status:pst,accId:a.id,profIdx:i,platId:a.platformId});
-        });
-      }
+          results.push({platName:p.name,platColor:p.color,label:a.email+' / '+pr.name,sub:'Perfil'+(pr.pin?' | PIN: '+pr.pin:'')+(a.password?' | Clave: '+a.password:''),assigned:per2?per2.name:'Libre',expiry:pr.expiry||'',status:pst,accId:a.id,profIdx:i,platId:a.platformId});
+        }
+      });
     }
-  });
-  // Search by client/reseller name
-  var matched = [];
-  DB.clients.forEach(function(c){if(c.name.toLowerCase().indexOf(q)>=0) matched.push({type:'client',person:c});});
-  DB.resellers.forEach(function(r){if(r.name.toLowerCase().indexOf(q)>=0) matched.push({type:'reseller',person:r});});
-  matched.forEach(function(m){
-    DB.accounts.forEach(function(a){
-      var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'#fff'};
-      var st=getAccStatus(a);
-      if(a.type==='complete' && a.assigneeId===m.person.id){
-        results.push({platName:p.name,platColor:p.color,label:a.email,sub:'Cuenta completa | '+m.person.name,assigned:m.person.name,expiry:a.expiry||'',status:st,accId:a.id,profIdx:'',platId:a.platformId});
-      } else if(a.profiles){
-        a.profiles.forEach(function(pr,i){
-          if(pr.assigneeId===m.person.id){
-            var pst=pr.expiry?(new Date(pr.expiry)<nowVE()?'expired':'active'):'active';
-            results.push({platName:p.name,platColor:p.color,label:a.email+' / '+pr.name,sub:'Perfil | '+m.person.name+(pr.pin?' | PIN: '+pr.pin:''),assigned:m.person.name,expiry:pr.expiry||'',status:pst,accId:a.id,profIdx:i,platId:a.platformId});
-          }
-        });
-      }
-    });
   });
   // Deduplicate by accId+profIdx
   var seen={};
