@@ -2674,6 +2674,12 @@ function buildPassChangeMsg(a, p, pr){
   lines.push('');
   lines.push('👤 USUARIO:');
   lines.push(pr.name||'');
+  var clientName = pr.cnotes||pr.resellerClient||'';
+  if(clientName){
+    lines.push('');
+    lines.push('🙍 CLIENTE:');
+    lines.push(clientName);
+  }
   return lines.join('\n');
 }
 function buildMsg(a, p, pr, duration){
