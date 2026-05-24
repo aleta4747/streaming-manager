@@ -3236,7 +3236,7 @@ function runGlobalSearch(){
       // Fields: email, password, platform, assigned name, resellerClient, notes, provider
       var haystack = [a.email, a.password, p.name, per?per.name:'', a.resellerClient||'', a.notes||'', a.provider||''].join(' ').toLowerCase();
       if(haystack.indexOf(q)>=0){
-        results.push({platName:p.name,platColor:p.color,label:a.email,sub:'Cuenta completa'+(a.password?' | Clave: '+a.password:''),assigned:per?per.name:'Sin asignar',expiry:a.expiry||'',status:st,accId:a.id,profIdx:'',platId:a.platformId});
+        results.push({platName:p.name,platColor:p.color,label:a.email,sub:'Cuenta completa'+(a.password?' | Clave: '+a.password:''),assigned:per?per.name:'Sin asignar',expiry:a.cutDate||a.expiry||'',status:st,accId:a.id,profIdx:'',platId:a.platformId});
       }
     } else if(a.profiles){
       a.profiles.forEach(function(pr,i){
@@ -3245,7 +3245,7 @@ function runGlobalSearch(){
         var haystack2 = [a.email, a.password, pr.name, pr.pin||'', p.name, per2?per2.name:'', pr.resellerClient||'', a.notes||'', a.provider||''].join(' ').toLowerCase();
         if(haystack2.indexOf(q)>=0){
           var pst = pr.expiry ? (new Date(pr.expiry)<nowVE()?'expired':'active') : 'active';
-          results.push({platName:p.name,platColor:p.color,label:a.email+' / '+pr.name,sub:'Perfil'+(pr.pin?' | PIN: '+pr.pin:'')+(a.password?' | Clave: '+a.password:''),assigned:per2?per2.name:'Libre',expiry:pr.expiry||'',status:pst,accId:a.id,profIdx:i,platId:a.platformId});
+          results.push({platName:p.name,platColor:p.color,label:a.email+' / '+pr.name,sub:'Perfil'+(pr.pin?' | PIN: '+pr.pin:'')+(a.password?' | Clave: '+a.password:''),assigned:per2?per2.name:'Libre',expiry:pr.cutDate||pr.expiry||'',status:pst,accId:a.id,profIdx:i,platId:a.platformId});
         }
       });
     }
@@ -3271,7 +3271,7 @@ function runGlobalSearch(){
           '<div class="gs-item-sub">'+escH(r.sub)+'</div>'+
         '</div>'+
         '<div><div style="font-size:11px;color:var(--text-dim);font-weight:700">Asignado</div><div style="font-size:13px;font-weight:800;color:var(--text-bright)">'+escH(r.assigned)+'</div></div>'+
-        '<div><div style="font-size:11px;color:var(--text-dim);font-weight:700">Vencimiento</div><div style="font-family:Share Tech Mono,monospace;font-size:13px;color:var(--neon)">'+escH(r.expiry||'-')+'</div>'+stBadge+'</div>'+
+        '<div><div style="font-size:11px;color:var(--text-dim);font-weight:700">Vence cliente</div><div style="font-family:Share Tech Mono,monospace;font-size:13px;color:var(--neon)">'+escH(r.expiry||'-')+'</div>'+stBadge+'</div>'+
         '<div style="display:flex;gap:6px;align-items:center;">'+
           '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);" onclick="goToPlatformFilter(\''+escH(r.platId||'')+'\',\''+escH(rEmail)+'\');clearGlobalSearch()" title="Ir a la cuenta">&#8599; IR</button>'+
           '<button class="btn btn-sm btn-copy" data-acc="'+r.accId+'" data-prof="'+r.profIdx+'" onclick="gsAction(this,0)">Copiar</button>'+
