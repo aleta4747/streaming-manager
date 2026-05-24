@@ -2878,7 +2878,7 @@ function getReloadScopeItems(){
     var exp=a.expiry;
     if(!exp) return;
     var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?',color:'var(--neon)'};
-    var typeLbl=a.type==='complete'?'Completa':a.type==='email'?'Por correo':'Por perfil';
+    var typeLbl=a.type==='complete'?'Completa':a.type==='email'?'Por correo':a.type==='emailsingle'?'Correo ind.':'Por perfil';
     items.push({expiry:exp,label:a.email,platName:p.name,platColor:p.color||'var(--neon)',typeLbl:typeLbl,accId:a.id,platId:a.platformId,provider:a.provider||''});
   });
   return items;
@@ -3102,6 +3102,14 @@ function renderFinance(){
       var rKey='complete_'+pType;
       var price=getRatesForPlat(a.platformId)[rKey]||0;
       incomeRows.push({name:p.name,slot:a.email,person:per.name,type:'Completa',rateKey:rKey,personType:pType,price:price});
+    } else if(a.type==='emailsingle'&&a.assigneeId){
+      var listES=a.assignType==='client'?DB.clients:DB.resellers;
+      var perES=listES.find(function(x){return x.id===a.assigneeId;})||{name:'?'};
+      var pTypeES=a.assignType==='reseller'?'reseller':'client';
+      var rKeyES='email_'+pTypeES;
+      var priceES=getRatesForPlat(a.platformId)[rKeyES]||0;
+      var slotES=(a.profiles&&a.profiles[0])?a.profiles[0].name||a.email:a.email;
+      incomeRows.push({name:p.name,slot:slotES,person:perES.name,type:'Correo ind.',rateKey:rKeyES,personType:pTypeES,price:priceES});
     } else if(a.profiles){
       a.profiles.forEach(function(pr){
         if(!pr.assigneeId) return;
@@ -3363,13 +3371,23 @@ function clearProfile(el){
   if(!acc||!acc.profiles||!acc.profiles[profIdx]) return;
   var pr=acc.profiles[profIdx];
   var plat=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
-  // Pedir nueva clave/PIN antes de confirmar
-  var fieldLabel = (acc.type==='email'||acc.type==='emailsingle') ? 'Nueva clave del correo' : 'Nuevo PIN del perfil';
-  var currentVal = pr.pin||'';
-  var newPin=prompt(fieldLabel+' "'+pr.name+'" (deja vacío para mantener el actual):',currentVal);
-  if(newPin===null) return; // canceló
-  newPin=newPin.trim()||currentVal;
-  if(!confirm('¿Limpiar este perfil? Los datos se guardarán en la Papelera.')) return;
+  // 1. Nuevo nombre del perfil
+  var newName=prompt('Nuevo nombre para el perfil (actual: "'+pr.name+'"):',pr.name);
+  if(newName===null) return;
+  newName=newName.trim()||pr.name;
+  // 2. Nuevo PIN/clave
+  var newPin=pr.pin||'';
+  if(acc.type==='email'||acc.type==='emailsingle'){
+    var newPin2=prompt('Nueva clave del correo (actual: "'+(pr.pin||'sin clave')+'"):',pr.pin||'');
+    if(newPin2===null) return;
+    newPin=newPin2.trim()||pr.pin||'';
+  } else {
+    var newPin3=prompt('Nuevo PIN del perfil (actual: "'+(pr.pin||'sin PIN')+'"):',pr.pin||'');
+    if(newPin3===null) return;
+    newPin=newPin3.trim()||pr.pin||'';
+  }
+  // 3. Confirmación
+  if(!confirm('¿Enviar "'+pr.name+'" a la papelera?\nLos datos quedarán guardados y el perfil quedará libre con nombre "'+newName+'" y nuevo PIN/clave.')) return;
   // Guardar copia en papelera
   if(!DB.trash) DB.trash=[];
   DB.trash.push({
@@ -3386,7 +3404,7 @@ function clearProfile(el){
   // Limpiar datos del perfil — se conserva nombre y nuevo PIN/clave
   acc.profiles[profIdx]={
     id: pr.id,
-    name: pr.name,
+    name: newName,
     pin: newPin,
     expiry:'', cutDate:'',
     assigneeId:'', assignType:'client',
