@@ -1613,10 +1613,7 @@ function buildProfileSlots(){
     html+='</div></div>';
     html+='</div>';
     html+='<input type="hidden" data-f="cut" value="">';
-    html+='<div class="form-row">';
-    html+='<div class="form-group"><label>Nombre del cliente</label><input type="text" data-f="resc" placeholder="Cliente final (opcional)"></div>';
-    html+='<div class="form-group"></div>';
-    html+='</div>';
+    html+='<input type="hidden" data-f="resc" value="">';
     html+='<div class="form-row">';
     html+='<div class="form-group"><label>Fecha vencimiento</label><input type="date" data-f="expiry"></div>';
     html+='<div class="form-group"><label>Notas del cliente</label><input type="text" data-f="cnotes" placeholder="Observaciones..."></div>';
@@ -1642,13 +1639,10 @@ function buildEmailSingleSlot(){
   html+='</div></div>';
   html+='</div>';
   html+='<input type="hidden" data-f="cut" value="">';
-  html+='<div class="form-row">';
-  html+='<div class="form-group"><label>Nombre del cliente</label><input type="text" data-f="resc" placeholder="Cliente final (opcional)"></div>';
-  html+='<div class="form-group"></div>';
-  html+='</div>';
+  html+='<input type="hidden" data-f="cnotes" value="">';
   html+='<div class="form-row">';
   html+='<div class="form-group"><label>Fecha vencimiento</label><input type="date" data-f="expiry"></div>';
-  html+='<div class="form-group"><label>Notas del cliente</label><input type="text" data-f="cnotes" placeholder="Observaciones..."></div>';
+  html+='<div class="form-group"><label>Nombre del cliente</label><input type="text" data-f="resc" placeholder="Ej: MAIDE"></div>';
   html+='</div>';
   html+='</div>';
   document.getElementById('emailsingle-slots').innerHTML=html;
@@ -1673,10 +1667,10 @@ function buildEmailSlots(){
     html+='</div></div>';
     html+='</div>';
     html+='<input type="hidden" data-f="cut" value="">';
-    html+='<input type="hidden" data-f="resc" value="">';
+    html+='<input type="hidden" data-f="cnotes" value="">';
     html+='<div class="form-row">';
     html+='<div class="form-group"><label>Fecha vencimiento</label><input type="date" data-f="expiry"></div>';
-    html+='<div class="form-group"><label>Notas del cliente</label><input type="text" data-f="cnotes" placeholder="Observaciones..."></div>';
+    html+='<div class="form-group"><label>Nombre del cliente</label><input type="text" data-f="resc" placeholder="Ej: MAIDE"></div>';
     html+='</div>';
     html+='</div>';
   }
@@ -2558,9 +2552,13 @@ function buildAlertMsg(personName, tab, accounts){
       slot=' ('+parts[0]+')';
       if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
     } else if(parts[1]){
-      var slotLbl=item.accType==='email'?' — Correo: ':' — Perfil: ';
-      slot=slotLbl+parts[1];
-      if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
+      if(item.accType==='email'){
+        slot=' — Correo: '+parts[1];
+        if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
+      } else {
+        slot=' — Perfil: '+parts[1];
+        if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
+      }
     }
     lines.push('Cuenta ' + item.platName + slot);
   });
