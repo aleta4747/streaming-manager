@@ -2549,14 +2549,13 @@ function buildAlertMsg(personName, tab, accounts){
     var parts=item.label.split(' - ');
     var slot='';
     if(item.accType==='complete'){
-      slot=' ('+parts[0]+')';
-      if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
+      slot+=' | Correo: '+parts[0];
+      if(item.resellerClient) slot+=' | Cliente: '+item.resellerClient;
     } else if(parts[1]){
       if(item.accType==='email'){
-        slot=' — Correo: '+parts[1];
-        if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
+        slot+=' | Correo: '+parts[1];
+        if(item.resellerClient) slot+=' | Cliente: '+item.resellerClient;
       } else {
-        // Perfil: plataforma, correo cuenta, usuario (perfil), nombre cliente
         slot+=' | Correo: '+parts[0]+' | Usuario: '+parts[1];
         if(item.cnotes) slot+=' | Cliente: '+item.cnotes;
       }
@@ -2940,7 +2939,7 @@ function getExpiryScopeItems(){
     var p=DB.platforms.find(function(x){return x.id===a.platformId;});
     var pn=p?p.name:'?';
     if(a.type==='complete'){
-      var expAlert=a.cutDate||a.expiry; // alertas usan fecha del cliente
+      var expAlert=a.cutDate||a.expiry;
       if(expAlert&&a.assigneeId){
         var list=a.assignType==='client'?DB.clients:DB.resellers;
         var per=a.assigneeId?list.find(function(x){return x.id===a.assigneeId;}):null;
@@ -2949,6 +2948,18 @@ function getExpiryScopeItems(){
           accType:'complete',accId:a.id,profIdx:null,platId:a.platformId,
           phone:per?per.phone||'':'' ,telegram:per?per.telegram||'':'',
           resellerClient:a.resellerClient||''});
+      }
+    }else if(a.type==='emailsingle'){
+      var expES=a.cutDate||a.expiry;
+      if(expES&&a.assigneeId){
+        var listES=a.assignType==='client'?DB.clients:DB.resellers;
+        var perES=a.assigneeId?listES.find(function(x){return x.id===a.assigneeId;}):null;
+        var pr0=a.profiles&&a.profiles[0]?a.profiles[0]:{name:'',resellerClient:''};
+        items.push({expiry:expES,label:a.email+' - '+pr0.name,platName:pn,typeLbl:'Correo individual',
+          assignedTo:perES?perES.name:null,personId:perES?perES.id:null,
+          accType:'email',accId:a.id,profIdx:null,platId:a.platformId,
+          phone:perES?perES.phone||'':'',telegram:perES?perES.telegram||'':'',
+          accEmail:a.email,resellerClient:pr0.resellerClient||a.resellerClient||''});
       }
     }else if(a.profiles){
       a.profiles.forEach(function(pr){
