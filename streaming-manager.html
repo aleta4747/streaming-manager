@@ -4035,6 +4035,8 @@ function confirmSale(){
       DB.accounts[accIdx].assigneeId = d.person.id;
       DB.accounts[accIdx].cutDate = expiry;
       if(!DB.accounts[accIdx].expiry) DB.accounts[accIdx].expiry = expiry;
+      var clientName=prompt('Nombre del cliente final para esta cuenta\n(deja vacío si no aplica):','');
+      if(clientName!==null) DB.accounts[accIdx].resellerClient=clientName.trim();
     }
   } else if(d.type==='profile' || d.type==='email'){
     var accIdx2 = DB.accounts.findIndex(function(x){return x.id===d.chosen.accId;});
@@ -4044,10 +4046,12 @@ function confirmSale(){
       DB.accounts[accIdx2].profiles[pi].assigneeId = d.person.id;
       DB.accounts[accIdx2].profiles[pi].expiry = expiry;
       DB.accounts[accIdx2].profiles[pi].cutDate = expiry;
-      // Para tipo email: guardar correo y clave ingresados
+      // Para tipo email: guardar correo, clave y nombre del cliente
       if(d.type==='email' && d.pr){
         DB.accounts[accIdx2].profiles[pi].name = d.pr.name;
         DB.accounts[accIdx2].profiles[pi].pin  = d.pr.pin;
+        var clientNameE=prompt('Nombre del cliente para este correo\n(deja vacío si no aplica):','');
+        if(clientNameE!==null) DB.accounts[accIdx2].profiles[pi].resellerClient=clientNameE.trim();
       }
     }
   }
