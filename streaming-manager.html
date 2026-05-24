@@ -1616,7 +1616,7 @@ function buildProfileSlots(){
     html+='<input type="hidden" data-f="resc" value="">';
     html+='<div class="form-row">';
     html+='<div class="form-group"><label>Fecha vencimiento</label><input type="date" data-f="expiry"></div>';
-    html+='<div class="form-group"><label>Notas del cliente</label><input type="text" data-f="cnotes" placeholder="Observaciones..."></div>';
+    html+='<div class="form-group"><label>Nombre del cliente</label><input type="text" data-f="cnotes" placeholder="Ej: MAIDE"></div>';
     html+='</div>';
     html+='</div>';
   }
@@ -2556,8 +2556,9 @@ function buildAlertMsg(personName, tab, accounts){
         slot=' — Correo: '+parts[1];
         if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
       } else {
-        slot=' — Perfil: '+parts[1];
-        if(item.resellerClient) slot+=' — Cliente: '+item.resellerClient;
+        // Perfil: plataforma, correo cuenta, usuario (perfil), nombre cliente
+        slot+=' | Correo: '+parts[0]+' | Usuario: '+parts[1];
+        if(item.cnotes) slot+=' | Cliente: '+item.cnotes;
       }
     }
     lines.push('Cuenta ' + item.platName + slot);
@@ -2959,7 +2960,7 @@ function getExpiryScopeItems(){
             assignedTo:per3?per3.name:null,personId:per3?per3.id:null,
             accType:(a.type==='emailsingle'?'email':a.type),accId:a.id,profIdx:a.profiles.indexOf(pr),platId:a.platformId,
             phone:per3?per3.phone||'':'',telegram:per3?per3.telegram||'':'',
-            accEmail:a.email,resellerClient:pr.resellerClient||''});
+            accEmail:a.email,resellerClient:pr.resellerClient||'',cnotes:pr.cnotes||''});
         }
       });
     }
@@ -4052,6 +4053,9 @@ function confirmSale(){
         DB.accounts[accIdx2].profiles[pi].pin  = d.pr.pin;
         var clientNameE=prompt('Nombre del cliente para este correo\n(deja vacío si no aplica):','');
         if(clientNameE!==null) DB.accounts[accIdx2].profiles[pi].resellerClient=clientNameE.trim();
+      } else if(d.type==='profile'){
+        var clientNameP=prompt('Nombre del cliente para este perfil\n(deja vacío si no aplica):','');
+        if(clientNameP!==null) DB.accounts[accIdx2].profiles[pi].cnotes=clientNameP.trim();
       }
     }
   }
