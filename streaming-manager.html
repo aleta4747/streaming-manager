@@ -3027,7 +3027,7 @@ function loadAllRates(){
 }
 function getRatesForPlat(platId){
   var all=loadAllRates();
-  var def={profile_client:0,profile_reseller:0,complete_client:0,complete_reseller:0,email_client:0,email_reseller:0};
+  var def={profile_client:0,profile_reseller:0,complete_client:0,complete_reseller:0,email_client:0,email_reseller:0,emailsingle_client:0,emailsingle_reseller:0};
   return all[platId]?Object.assign({},def,all[platId]):Object.assign({},def);
 }
 function saveRates(){
@@ -3041,6 +3041,8 @@ function saveRates(){
       complete_reseller:parseFloat(document.getElementById('rate-'+pid+'-complete-reseller').value)||0,
       email_client:    parseFloat(document.getElementById('rate-'+pid+'-email-client').value)||0,
       email_reseller:  parseFloat(document.getElementById('rate-'+pid+'-email-reseller').value)||0,
+      emailsingle_client:   parseFloat(document.getElementById('rate-'+pid+'-emailsingle-client').value)||0,
+      emailsingle_reseller: parseFloat(document.getElementById('rate-'+pid+'-emailsingle-reseller').value)||0,
     };
   });
   try{localStorage.setItem('sag8_rates2',JSON.stringify(all));}catch(e){}
@@ -3073,6 +3075,9 @@ function renderRates(){
       '<tr><td style="padding:4px 6px;color:var(--text-bright);">Por correo</td>'+
         '<td style="padding:4px 6px;text-align:center;">'+inp('rate-'+pid+'-email-client',r.email_client)+'</td>'+
         '<td style="padding:4px 6px;text-align:center;">'+inp('rate-'+pid+'-email-reseller',r.email_reseller)+'</td></tr>'+
+      '<tr><td style="padding:4px 6px;color:var(--text-bright);">Correo individual</td>'+
+        '<td style="padding:4px 6px;text-align:center;">'+inp('rate-'+pid+'-emailsingle-client',r.emailsingle_client)+'</td>'+
+        '<td style="padding:4px 6px;text-align:center;">'+inp('rate-'+pid+'-emailsingle-reseller',r.emailsingle_reseller)+'</td></tr>'+
       '</tbody></table>'+
     '</div>';
   });
@@ -3106,7 +3111,7 @@ function renderFinance(){
       var listES=a.assignType==='client'?DB.clients:DB.resellers;
       var perES=listES.find(function(x){return x.id===a.assigneeId;})||{name:'?'};
       var pTypeES=a.assignType==='reseller'?'reseller':'client';
-      var rKeyES='email_'+pTypeES;
+      var rKeyES='emailsingle_'+pTypeES;
       var priceES=getRatesForPlat(a.platformId)[rKeyES]||0;
       var slotES=(a.profiles&&a.profiles[0])?a.profiles[0].name||a.email:a.email;
       incomeRows.push({name:p.name,slot:slotES,person:perES.name,type:'Correo ind.',rateKey:rKeyES,personType:pTypeES,price:priceES});
