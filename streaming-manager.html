@@ -693,6 +693,29 @@ select option{background:var(--panel2);}
     </div>
   </div>
 </div>
+<div id="modal-pass-reminder" class="modal-overlay">
+  <div class="modal" style="max-width:480px;">
+    <div class="modal-hd">
+      <div class="modal-title">🔔 Recordatorio — Nueva clave</div>
+      <button class="modal-x" onclick="closeModal('modal-pass-reminder')">x</button>
+    </div>
+    <div class="modal-body">
+      <div style="font-size:13px;color:var(--text-dim);margin-bottom:14px;">La contraseña de la cuenta fue cambiada. Recuerda enviar la nueva clave a los siguientes perfiles asignados:</div>
+      <div id="pr-plat" style="font-family:Share Tech Mono,monospace;font-size:11px;color:var(--neon3);margin-bottom:6px;"></div>
+      <div id="pr-cred" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 14px;margin-bottom:14px;font-family:Share Tech Mono,monospace;font-size:13px;">
+        <div style="color:var(--text-dim);font-size:11px;margin-bottom:2px;">CORREO</div>
+        <div id="pr-email" style="color:var(--neon);margin-bottom:8px;"></div>
+        <div style="color:var(--text-dim);font-size:11px;margin-bottom:2px;">NUEVA CLAVE</div>
+        <div id="pr-pass" style="color:var(--warn);font-weight:700;font-size:15px;"></div>
+      </div>
+      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">Perfiles con clientes asignados:</div>
+      <div id="pr-profiles" style="font-size:13px;color:var(--text-bright);line-height:2;padding-left:4px;"></div>
+    </div>
+    <div class="modal-ft">
+      <button class="btn btn-primary" onclick="closeModal('modal-pass-reminder')">✓ Entendido</button>
+    </div>
+  </div>
+</div>
 <div id="modal-transfer-complete" class="modal-overlay">
   <div class="modal" style="max-width:500px;">
     <div class="modal-hd">
@@ -1783,7 +1806,14 @@ function saveAccount(){
       })();
     }
   }
-  if(editAccId){var i2=DB.accounts.findIndex(function(x){return x.id===editAccId;});DB.accounts[i2]=data;toast('Cuenta actualizada','success');}
+  var _passChanged = false;
+  if(editAccId){
+    var i2=DB.accounts.findIndex(function(x){return x.id===editAccId;});
+    var _oldPass = DB.accounts[i2].password;
+    DB.accounts[i2]=data;
+    _passChanged = (data.type==='profile') && (data.password !== _oldPass);
+    toast('Cuenta actualizada','success');
+  }
   else{DB.accounts.push(data);toast('Cuenta guardada','success');}
   var _histAction=editAccId?'CREAR':'CREAR';
   var _histPlat=DB.platforms.find(function(x){return x.id===data.platformId;})||{name:'?'};
@@ -1791,6 +1821,15 @@ function saveAccount(){
   saveDB();closeModal('modal-account');updateCounts();
   if(currentView==='accounts')renderAccounts();
   if(currentView==='dashboard'){renderDashboard();if(selPlatId)setTimeout(function(){showPlatDetail(selPlatId);},50);}
+  // Recordatorio de nueva clave para perfiles
+  if(_passChanged && data.profiles && data.profiles.length){
+    var assigned = data.profiles.filter(function(pr){return pr.assigneeId;});
+    if(assigned.length){
+      var names = assigned.map(function(pr){return '• '+escH(pr.name)+(pr.cnotes?' ('+escH(pr.cnotes)+')':'');}).join('<br>');
+      var platName = _histPlat.name;
+      showPassReminderModal(platName, data.email, data.password, names);
+    }
+  }
 }
 function deleteAccount(id){
   if(!confirm('Eliminar esta cuenta?'))return;
@@ -4168,6 +4207,16 @@ function downloadLibres(){
   document.getElementById('libres-status').textContent='✓ '+total+' cuenta(s) exportadas ('+rowsPerf.length+' perfil/correo, '+rowsComp.length+' completas).';
   setTimeout(function(){document.getElementById('libres-status').textContent='';},5000);
   addHistory('EXPORTAR','Descarga de cuentas libres','Perfil/Correo: '+rowsPerf.length+' | Completas: '+rowsComp.length);
+}
+// ─────────────────────────────────────────────────────────────
+
+// ── Recordatorio Nueva Clave ─────────────────────────────────
+function showPassReminderModal(platName, email, pass, profilesHtml){
+  document.getElementById('pr-plat').textContent = platName.toUpperCase();
+  document.getElementById('pr-email').textContent = email;
+  document.getElementById('pr-pass').textContent = pass;
+  document.getElementById('pr-profiles').innerHTML = profilesHtml;
+  setTimeout(function(){ openModal('modal-pass-reminder'); }, 400);
 }
 // ─────────────────────────────────────────────────────────────
 
