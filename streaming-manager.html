@@ -440,6 +440,7 @@ select option{background:var(--panel2);}
       <div class="nav-item" id="nav-alerts" onclick="showView('alerts')"><span class="nav-icon">&#9888;</span> Vencimientos <span class="badge danger" id="nav-alert-count">0</span></div>
       <div class="nav-item" id="nav-reloads" onclick="showView('reloads')"><span class="nav-icon">&#128260;</span> Recargas <span class="badge" id="nav-reload-count" style="background:var(--warn);color:var(--bg)">0</span></div>
       <div class="nav-item" id="nav-trash" onclick="showView('trash')"><span class="nav-icon">&#128465;</span> Papelera <span class="badge" id="trash-count" style="background:var(--text-dim);color:var(--bg)">0</span></div>
+      <div class="nav-item" id="nav-passreminders" onclick="showView('passreminders')"><span class="nav-icon">&#128273;</span> Avisos de clave <span class="badge danger" id="passreminder-count" style="display:none">0</span></div>
     </div>
     <div class="nav-sec">
       <div class="nav-lbl">// configuracion</div>
@@ -582,6 +583,12 @@ select option{background:var(--panel2);}
         <div id="trash-list"></div>
       </div>
 
+      <div id="view-passreminders" class="view">
+        <div class="sec-hd"><div class="sec-title">&#128273; Avisos de cambio de clave</div></div>
+        <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;font-family:Share Tech Mono,monospace;">Cuentas cuya clave fue cambiada recientemente. Marca cada una como entregada cuando hayas enviado la nueva clave.</div>
+        <div id="passreminders-list"></div>
+      </div>
+
       <div id="view-settings" class="view">
         <div class="sec-hd"><div class="sec-title">&#9881; Configuración</div></div>
         <div style="max-width:480px;">
@@ -690,29 +697,6 @@ select option{background:var(--panel2);}
     <div class="modal-ft">
       <button class="btn" onclick="closeModal('modal-transfer')">Cancelar</button>
       <button class="btn btn-primary" onclick="confirmTransfer()">&#8646; Transferir</button>
-    </div>
-  </div>
-</div>
-<div id="modal-pass-reminder" class="modal-overlay">
-  <div class="modal" style="max-width:480px;">
-    <div class="modal-hd">
-      <div class="modal-title">🔔 Recordatorio — Nueva clave</div>
-      <button class="modal-x" onclick="closeModal('modal-pass-reminder')">x</button>
-    </div>
-    <div class="modal-body">
-      <div style="font-size:13px;color:var(--text-dim);margin-bottom:14px;">La contraseña de la cuenta fue cambiada. Recuerda enviar la nueva clave a los siguientes perfiles asignados:</div>
-      <div id="pr-plat" style="font-family:Share Tech Mono,monospace;font-size:11px;color:var(--neon3);margin-bottom:6px;"></div>
-      <div id="pr-cred" style="background:var(--bg);border:1px solid var(--border);border-radius:4px;padding:10px 14px;margin-bottom:14px;font-family:Share Tech Mono,monospace;font-size:13px;">
-        <div style="color:var(--text-dim);font-size:11px;margin-bottom:2px;">CORREO</div>
-        <div id="pr-email" style="color:var(--neon);margin-bottom:8px;"></div>
-        <div style="color:var(--text-dim);font-size:11px;margin-bottom:2px;">NUEVA CLAVE</div>
-        <div id="pr-pass" style="color:var(--warn);font-weight:700;font-size:15px;"></div>
-      </div>
-      <div style="font-size:12px;color:var(--text-dim);margin-bottom:8px;">Perfiles con clientes asignados:</div>
-      <div id="pr-profiles" style="font-size:13px;color:var(--text-bright);line-height:2;padding-left:4px;"></div>
-    </div>
-    <div class="modal-ft">
-      <button class="btn btn-primary" onclick="closeModal('modal-pass-reminder')">✓ Entendido</button>
     </div>
   </div>
 </div>
@@ -1065,7 +1049,7 @@ function checkSession(){
   }
   return false;
 }
-function loadDB(){try{var s=localStorage.getItem('sag8');if(s)DB=JSON.parse(s);}catch(e){}if(!DB.trash)DB.trash=[];loadSettings();}
+function loadDB(){try{var s=localStorage.getItem('sag8');if(s)DB=JSON.parse(s);}catch(e){}if(!DB.trash)DB.trash=[];if(!DB.passReminders)DB.passReminders=[];loadSettings();}
 function saveDB(){try{localStorage.setItem('sag8',JSON.stringify(DB));}catch(e){}}
 function uid(){return Date.now().toString(36)+Math.random().toString(36).substr(2,5);}
 // ── Configuración de fecha/hora manual ──────────────────────────────────
@@ -1351,7 +1335,7 @@ function showView(id){
   document.getElementById('view-'+id).classList.add('active');
   var ni=document.getElementById('nav-'+id);
   if(ni)ni.classList.add('active');
-  var titles={dashboard:'Dashboard',platforms:'Plataformas',accounts:'Cuentas',available:'Disponibles',clients:'Clientes',resellers:'Revendedores',alerts:'Vencimientos',reloads:'Recargas',trash:'Papelera',settings:'Configuración',finance:'Finanzas',history:'Historial'};
+  var titles={dashboard:'Dashboard',platforms:'Plataformas',accounts:'Cuentas',available:'Disponibles',clients:'Clientes',resellers:'Revendedores',alerts:'Vencimientos',reloads:'Recargas',trash:'Papelera',passreminders:'Avisos de clave',settings:'Configuración',finance:'Finanzas',history:'Historial'};
   document.getElementById('page-title').textContent=titles[id]||id;
   currentView=id;
   try{localStorage.setItem('sag8_view',id);}catch(e){}
@@ -1364,6 +1348,7 @@ function showView(id){
   else if(id==='alerts'){alertTab='expired';switchAlertTab('expired');}
   else if(id==='reloads'){reloadTab='expired';switchReloadTab('expired');}
   else if(id==='trash')renderTrash();
+  else if(id==='passreminders')renderPassReminders();
   else if(id==='settings')initSettings();
   else if(id==='finance')renderFinance();
   else if(id==='history')renderHistory();
@@ -1825,9 +1810,8 @@ function saveAccount(){
   if(_passChanged && data.profiles && data.profiles.length){
     var assigned = data.profiles.filter(function(pr){return pr.assigneeId;});
     if(assigned.length){
-      var names = assigned.map(function(pr){return '• '+escH(pr.name)+(pr.cnotes?' ('+escH(pr.cnotes)+')':'');}).join('<br>');
-      var platName = _histPlat.name;
-      showPassReminderModal(platName, data.email, data.password, names);
+      var assignedArr = assigned.map(function(pr){return {name:pr.name,cnotes:pr.cnotes||''};});
+      showPassReminderModal(_histPlat.name, data.email, data.password, assignedArr);
     }
   }
 }
@@ -2950,6 +2934,7 @@ function getReloadsTomorrow(){
 }
 function updateReloadCount(){
   var total=getReloadsExpired().length+getReloadsToday().length+getReloadsTomorrow().length;
+  updatePassReminderCount();
   var el=document.getElementById('nav-reload-count');
   if(el) el.textContent=total;
 }
@@ -3563,15 +3548,27 @@ function renderTrash(){
           '<span style="color:'+escH(item.platColor||'var(--neon)')+';font-weight:800;">'+escH(item.platName)+'</span>'+
           ' &nbsp;|&nbsp; Correo: '+escH(item.email)+
         '</div>'+
-        ((item.accType==='email'||item.accType==='emailsingle')&&item.snapshot.pin?'<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);">Correo: '+escH(item.snapshot.name||'')+'&nbsp;&nbsp;|&nbsp;&nbsp;Clave: '+escH(item.snapshot.pin)+'</div>':'')+
-        (item.snapshot.expiry?'<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">Vencía: '+escH(item.snapshot.expiry)+'</div>':'')+
-        (item.snapshot.assigneeId?
-          (function(){
-            var allP=[].concat(DB.clients,DB.resellers);
-            var per=allP.find(function(x){return x.id===item.snapshot.assigneeId;});
-            return per?'<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">Asignado: '+escH(per.name)+'</div>':'';
-          })()
-        :'')+
+        (function(){
+          var isEmail=(item.accType==='email'||item.accType==='emailsingle');
+          var lines='';
+          // Correo y clave para tipo email
+          if(isEmail){
+            if(item.snapshot.name) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);">&#9993; Correo cliente: '+escH(item.snapshot.name)+'</div>';
+            if(item.snapshot.pin)  lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);">&#128273; Clave: '+escH(item.snapshot.pin)+'</div>';
+          }
+          // PIN para tipo perfil
+          if(!isEmail&&item.snapshot.pin) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">PIN: '+escH(item.snapshot.pin)+'</div>';
+          // Fecha vencimiento
+          if(item.snapshot.expiry) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">Vencía: '+escH(item.snapshot.expiry)+'</div>';
+          // Cliente asignado
+          var allP=[].concat(DB.clients,DB.resellers);
+          var per=item.snapshot.assigneeId?allP.find(function(x){return x.id===item.snapshot.assigneeId;}):null;
+          if(per) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">Asignado: '+escH(per.name)+'</div>';
+          // Nombre del cliente (cnotes para perfil, resellerClient para email)
+          var clientName=item.snapshot.cnotes||item.snapshot.resellerClient||'';
+          if(clientName) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--warn);">&#128100; Cliente: '+escH(clientName)+'</div>';
+          return lines;
+        })()+
         '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Limpiado el '+escH(item.deletedAt)+'</div>'+
       '</div>'+
       '<div style="display:flex;gap:6px;">'+
@@ -4211,12 +4208,56 @@ function downloadLibres(){
 // ─────────────────────────────────────────────────────────────
 
 // ── Recordatorio Nueva Clave ─────────────────────────────────
-function showPassReminderModal(platName, email, pass, profilesHtml){
-  document.getElementById('pr-plat').textContent = platName.toUpperCase();
-  document.getElementById('pr-email').textContent = email;
-  document.getElementById('pr-pass').textContent = pass;
-  document.getElementById('pr-profiles').innerHTML = profilesHtml;
-  setTimeout(function(){ openModal('modal-pass-reminder'); }, 400);
+function showPassReminderModal(platName, email, pass, assigned){
+  if(!DB.passReminders) DB.passReminders=[];
+  DB.passReminders.push({
+    id: uid(),
+    createdAt: todayStrVE(),
+    platName: platName,
+    email: email,
+    pass: pass,
+    profiles: assigned // array of {name, cnotes}
+  });
+  saveDB();
+  updatePassReminderCount();
+}
+function updatePassReminderCount(){
+  var n=(DB.passReminders||[]).length;
+  var el=document.getElementById('passreminder-count');
+  if(el){ el.textContent=n; el.style.display=n?'':'none'; }
+}
+function renderPassReminders(){
+  var el=document.getElementById('passreminders-list');
+  if(!el) return;
+  var list=DB.passReminders||[];
+  if(!list.length){
+    el.innerHTML='<div class="empty-state"><p>Sin avisos pendientes ✓</p></div>';
+    return;
+  }
+  el.innerHTML=list.map(function(item){
+    var profs=item.profiles.map(function(p){
+      return '<div style="font-size:13px;color:var(--text-bright);padding:2px 0;">&#8226; '+escH(p.name)+(p.cnotes?' <span style="color:var(--warn);font-size:12px;">('+escH(p.cnotes)+')</span>':'')+'</div>';
+    }).join('');
+    return '<div class="alert-card" style="border-left-color:var(--warn);background:var(--panel2);">'+
+      '<div class="alert-info">'+
+        '<div style="font-weight:800;color:var(--text-bright);font-size:14px);">'+escH(item.platName)+'</div>'+
+        '<div style="font-family:Share Tech Mono,monospace;font-size:12px;margin-top:4px;">'+
+          '<span style="color:var(--text-dim);">Correo: </span><span style="color:var(--neon);">'+escH(item.email)+'</span>'+
+        '</div>'+
+        '<div style="font-family:Share Tech Mono,monospace;font-size:14px;font-weight:700;color:var(--warn);margin-top:4px;">'+
+          '&#128273; Nueva clave: '+escH(item.pass)+
+        '</div>'+
+        '<div style="margin-top:8px;font-size:12px;color:var(--text-dim);">Enviar a:</div>'+
+        profs+
+        '<div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Generado el '+escH(item.createdAt)+'</div>'+
+      '</div>'+
+      '<button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="dismissPassReminder(\''+escH(item.id)+'\')">&#10003; Aviso entregado</button>'+
+    '</div>';
+  }).join('');
+}
+function dismissPassReminder(id){
+  DB.passReminders=(DB.passReminders||[]).filter(function(x){return x.id!==id;});
+  saveDB(); updatePassReminderCount(); renderPassReminders();
 }
 // ─────────────────────────────────────────────────────────────
 
