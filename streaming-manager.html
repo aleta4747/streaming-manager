@@ -3404,13 +3404,14 @@ function clearProfile(el){
   var pr=acc.profiles[profIdx];
   var plat=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
   // 1. Nuevo nombre del perfil
-  var newName=prompt('Nuevo nombre para el perfil (actual: "'+pr.name+'"):',pr.name);
+  var infoActual=(acc.type==='email'||acc.type==='emailsingle')?'\nCorreo actual: '+pr.name+'\nContraseña actual: '+(pr.pin||'sin clave'):'';
+  var newName=prompt('Nuevo nombre para el perfil (actual: "'+pr.name+'")'+infoActual+':',pr.name);
   if(newName===null) return;
   newName=newName.trim()||pr.name;
   // 2. Nuevo PIN/clave
   var newPin=pr.pin||'';
   if(acc.type==='email'||acc.type==='emailsingle'){
-    var newPin2=prompt('Nueva clave del correo (actual: "'+(pr.pin||'sin clave')+'"):',pr.pin||'');
+    var newPin2=prompt('Nueva clave del correo\nCorreo actual: '+pr.name+'\nClave actual: '+(pr.pin||'sin clave')+'\n\nNueva clave:',pr.pin||'');
     if(newPin2===null) return;
     newPin=newPin2.trim()||pr.pin||'';
   } else {
@@ -3431,6 +3432,7 @@ function clearProfile(el){
     platName: plat.name,
     platColor: plat.color||'var(--neon)',
     email: acc.email,
+    accType: acc.type||'profile',
     snapshot: JSON.parse(JSON.stringify(pr))
   });
   // Limpiar datos del perfil — se conserva nombre y nuevo PIN/clave
@@ -3522,6 +3524,7 @@ function renderTrash(){
           '<span style="color:'+escH(item.platColor||'var(--neon)')+';font-weight:800;">'+escH(item.platName)+'</span>'+
           ' &nbsp;|&nbsp; Correo: '+escH(item.email)+
         '</div>'+
+        ((item.accType==='email'||item.accType==='emailsingle')&&item.snapshot.pin?'<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);">Correo: '+escH(item.snapshot.name||'')+'&nbsp;&nbsp;|&nbsp;&nbsp;Clave: '+escH(item.snapshot.pin)+'</div>':'')+
         (item.snapshot.expiry?'<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">Vencía: '+escH(item.snapshot.expiry)+'</div>':'')+
         (item.snapshot.assigneeId?
           (function(){
