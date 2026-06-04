@@ -3367,7 +3367,7 @@ function changeAccVencimiento(accId){
 function changeAccExpiry(accId){
   var acc=DB.accounts.find(function(x){return x.id===accId;});
   if(!acc) return;
-  var current=acc.expiry||'';
+  var current=acc.cutDate||acc.expiry||'';
   var newDate=prompt('Nueva fecha de vencimiento del cliente:\n(formato AAAA-MM-DD)',current);
   if(newDate===null) return;
   newDate=newDate.trim();
