@@ -1812,9 +1812,15 @@ function saveAccount(){
   addHistory(_histAction, (editAccId?'Cuenta editada: ':'Cuenta creada: ')+data.email, 'Plataforma: '+_histPlat.name);
   saveDB();closeModal('modal-account');updateCounts();
   if(currentView==='accounts')renderAccounts();
-  else if(currentView==='dashboard'){renderDashboard();if(selPlatId)setTimeout(function(){showPlatDetail(selPlatId);},50);}
-  else if(currentView==='platforms')renderPlatforms();
-  else if(currentView==='available')renderAvailable();
+  else if(currentView==='dashboard'){
+    if(selPlatId){
+      // Estaba dentro de una plataforma — solo refrescar el detalle
+      renderPlatButtons();
+      setTimeout(function(){showPlatDetail(selPlatId);},50);
+    } else {
+      renderDashboard();
+    }
+  }
   // Recordatorio de nueva clave para perfiles
   if(_passChanged && data.profiles && data.profiles.length){
     var assigned = data.profiles.filter(function(pr){return pr.assigneeId;});
