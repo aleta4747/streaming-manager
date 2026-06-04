@@ -579,7 +579,14 @@ select option{background:var(--panel2);}
       </div>
 
       <div id="view-trash" class="view">
-        <div class="sec-hd"><div class="sec-title">&#128465; Papelera de Perfiles</div></div>
+        <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between;">
+          <div class="sec-title">&#128465; Papelera de Perfiles</div>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="trash-search" type="text" placeholder="Buscar en papelera..." oninput="renderTrash()" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:220px;">
+            <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger);" onclick="clearAllTrash()">&#128465; Vaciar</button>
+          </div>
+        </div>
+        <div id="trash-count-label" style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-bottom:12px;"></div>
         <div id="trash-list"></div>
       </div>
 
@@ -3532,15 +3539,49 @@ function restoreProfile(trashId){
   if(currentView==='accounts') renderAccounts();
   toast('Perfil restaurado','success');
 }
+function clearAllTrash(){
+  if(!(DB.trash||[]).length) return;
+  if(!confirm('¿Vaciar toda la papelera? Esta acción no se puede deshacer.')) return;
+  DB.trash=[];
+  saveDB(); updateTrashCount(); renderTrash();
+  toast('Papelera vaciada','warn');
+}
 function renderTrash(){
   var el=document.getElementById('trash-list');
   if(!el)return;
-  var trash=DB.trash||[];
+  var q=(document.getElementById('trash-search')||{value:''}).value.trim().toLowerCase();
+  var trash=(DB.trash||[]).slice().reverse();
+  var label=document.getElementById('trash-count-label');
   if(!trash.length){
     el.innerHTML='<div class="empty-state"><p>Papelera vacía</p></div>';
+    if(label) label.textContent='';
     return;
   }
-  el.innerHTML=trash.slice().reverse().map(function(item){
+  // Filter by query across all relevant fields
+  if(q){
+    trash=trash.filter(function(item){
+      var allP=[].concat(DB.clients,DB.resellers);
+      var per=item.snapshot&&item.snapshot.assigneeId?allP.find(function(x){return x.id===item.snapshot.assigneeId;}):null;
+      var haystack=[
+        item.profName||'',
+        item.platName||'',
+        item.email||'',
+        item.deletedAt||'',
+        item.snapshot?item.snapshot.pin||'':'',
+        item.snapshot?item.snapshot.name||'':'',
+        item.snapshot?item.snapshot.cnotes||'':'',
+        item.snapshot?item.snapshot.resellerClient||'':'',
+        per?per.name:''
+      ].join(' ').toLowerCase();
+      return haystack.indexOf(q)>=0;
+    });
+  }
+  if(label) label.textContent=q?(trash.length+' resultado(s) para "'+q+'"'):(trash.length+' registro(s) en papelera');
+  if(!trash.length){
+    el.innerHTML='<div class="empty-state"><p>Sin resultados para "'+escH(q)+'"</p></div>';
+    return;
+  }
+  el.innerHTML=trash.map(function(item){
     return '<div class="alert-card" style="border-left-color:var(--text-dim);background:var(--panel2);">'+
       '<div class="alert-info">'+
         '<div style="font-weight:800;color:var(--text-bright);font-size:14px;">'+escH(item.profName)+'</div>'+
