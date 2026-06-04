@@ -1814,9 +1814,11 @@ function saveAccount(){
   if(currentView==='accounts')renderAccounts();
   else if(currentView==='dashboard'){
     if(selPlatId){
-      // Estaba dentro de una plataforma — solo refrescar el detalle
+      // Estaba dentro de una plataforma — forzar recarga del detalle
+      var _pid=selPlatId;
+      selPlatId=null; // reset para que showPlatDetail no lo trate como toggle
       renderPlatButtons();
-      setTimeout(function(){showPlatDetail(selPlatId);},50);
+      setTimeout(function(){showPlatDetail(_pid);},50);
     } else {
       renderDashboard();
     }
@@ -2036,6 +2038,9 @@ function renderDashAvailable(){
       '</div>'+
     '</div>';
   }).join('');
+}
+function refreshPlatDetail(){
+  if(selPlatId) showPlatDetail(selPlatId);
 }
 function showPlatDetail(platId){
   var same=selPlatId===platId;
