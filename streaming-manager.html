@@ -526,8 +526,12 @@ select option{background:var(--panel2);}
       <div id="view-clients" class="view">
         <div class="sec-hd">
           <div class="sec-title">Clientes</div>
-          <button class="btn btn-primary" onclick="openPersonModal('client')">+ Nuevo cliente</button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="cli-search" type="text" placeholder="Buscar cliente..." oninput="renderPersonTable('client')" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:200px;">
+            <button class="btn btn-primary" onclick="openPersonModal('client')">+ Nuevo cliente</button>
+          </div>
         </div>
+        <div id="cli-count" style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-bottom:8px;"></div>
         <div class="dtw">
           <table class="data-table">
             <thead><tr><th>Nombre</th><th>Telefono / WhatsApp</th><th>Telegram</th><th>Notas</th><th>Asignados</th><th>Acciones</th></tr></thead>
@@ -539,8 +543,12 @@ select option{background:var(--panel2);}
       <div id="view-resellers" class="view">
         <div class="sec-hd">
           <div class="sec-title">Revendedores</div>
-          <button class="btn btn-primary" onclick="openPersonModal('reseller')">+ Nuevo revendedor</button>
+          <div style="display:flex;gap:8px;align-items:center;">
+            <input id="res-search" type="text" placeholder="Buscar revendedor..." oninput="renderPersonTable('reseller')" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:200px;">
+            <button class="btn btn-primary" onclick="openPersonModal('reseller')">+ Nuevo revendedor</button>
+          </div>
         </div>
+        <div id="res-count" style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-bottom:8px;"></div>
         <div class="dtw">
           <table class="data-table">
             <thead><tr><th>Nombre</th><th>Telefono / WhatsApp</th><th>Telegram</th><th>Notas</th><th>Asignados</th><th>Acciones</th></tr></thead>
@@ -2496,10 +2504,17 @@ function showPersonHistory(personId, personType){
 }
 
 function renderPersonTable(type){
-  var list=type==='client'?DB.clients:DB.resellers;
-  var tbody=document.getElementById(type==='client'?'cli-tbody':'res-tbody');
-  if(!list.length){tbody.innerHTML='<tr><td colspan="5"><div class="empty-state"><p>No hay '+(type==='client'?'clientes':'revendedores')+'</p></div></td></tr>';return;}
-  tbody.innerHTML=list.map(function(p){
+  var isClient=type==='client';
+  var list=isClient?DB.clients:DB.resellers;
+  var tbody=document.getElementById(isClient?'cli-tbody':'res-tbody');
+  var countEl=document.getElementById(isClient?'cli-count':'res-count');
+  var q=((document.getElementById(isClient?'cli-search':'res-search')||{value:''}).value||'').trim().toLowerCase();
+  var filtered=q?list.filter(function(p){
+    return [p.name,p.phone||'',p.telegram||'',p.notes||''].join(' ').toLowerCase().indexOf(q)>=0;
+  }):list;
+  if(countEl) countEl.textContent=q?(filtered.length+' resultado(s) de '+list.length):(list.length+' '+(isClient?'cliente(s)':'revendedor(es)'));
+  if(!filtered.length){tbody.innerHTML='<tr><td colspan="6"><div class="empty-state"><p>'+(q?'Sin resultados para "'+escH(q)+'"':'No hay '+(isClient?'clientes':'revendedores'))+'</p></div></td></tr>';return;}
+  tbody.innerHTML=filtered.map(function(p){
     var cnt=0;
     DB.accounts.forEach(function(a){if(a.type==='complete'&&a.assigneeId===p.id)cnt++;if(a.type==='profile'&&a.profiles)a.profiles.forEach(function(pr){if(pr.assigneeId===p.id)cnt++;});});
     return '<tr>'+
