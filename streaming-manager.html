@@ -1908,6 +1908,18 @@ function mkStat(n,lbl,cls){
   return '<div class="stat-card '+cls+'"><div class="stat-num">'+n+'</div><div class="stat-lbl">'+lbl+'</div></div>';
 }
 
+function movePlatform(id, dir){
+  var idx = DB.platforms.findIndex(function(x){return x.id===id;});
+  if(idx<0) return;
+  var newIdx = idx+dir;
+  if(newIdx<0||newIdx>=DB.platforms.length) return;
+  var tmp = DB.platforms[idx];
+  DB.platforms[idx] = DB.platforms[newIdx];
+  DB.platforms[newIdx] = tmp;
+  saveDB();
+  renderPlatButtons();
+  if(currentView==='platforms') renderPlatforms();
+}
 function renderPlatButtons(){
   var g=document.getElementById('plat-grid');
   if(!DB.platforms.length){g.innerHTML='<p class="tdim" style="font-size:14px">Sin plataformas. <a href="#" onclick="openPlatformModal();return false;" style="color:var(--neon)">Crear una</a></p>';return;}
@@ -1935,6 +1947,8 @@ function renderPlatButtons(){
         '<button class="btn btn-sm btn-primary" style="justify-content:center" onclick="event.stopPropagation();addAccToPlatform(\''+p.id+'\')" >+ Cuenta</button>'+
         '<button class="btn btn-sm" style="border-color:var(--border-glow);color:var(--text-dim)" onclick="event.stopPropagation();openPlatformModal(\''+p.id+'\')" title="Editar">&#9998;</button>'+
         '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlatform(\''+p.id+'\')" title="Eliminar">&#10005;</button>'+
+        '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);min-width:28px;justify-content:center;" onclick="event.stopPropagation();movePlatform(\''+p.id+'\',-1)" title="Mover arriba">&#9650;</button>'+
+        '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);min-width:28px;justify-content:center;" onclick="event.stopPropagation();movePlatform(\''+p.id+'\',1)" title="Mover abajo">&#9660;</button>'+
       '</div>'+
     '</div>';
   }).join('');
