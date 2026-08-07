@@ -2470,10 +2470,24 @@ function renderHistory(){
   if(!logs.length){el.innerHTML='<div class="empty-state"><p>Sin registros en el historial</p></div>';return;}
   var colorMap={
     ASIGNAR:'var(--success)',LIMPIAR:'var(--danger)',RENOVAR:'var(--neon)',
-    CREAR:'var(--neon2)',BORRAR:'var(--danger)',CAMBIO_CLAVE:'#a78bfa',RESTAURAR:'var(--warn)'
+    CREAR:'var(--neon2)',BORRAR:'var(--danger)',CAMBIO_CLAVE:'#a78bfa',RESTAURAR:'var(--warn)',EXPORTAR:'var(--text-dim)'
   };
   el.innerHTML=logs.map(function(log){
     var color=colorMap[log.action]||'var(--text-dim)';
+    var extraHtml='';
+    if(log.extra){
+      var parts=log.extra.split(' | ').filter(function(s){return s.trim();});
+      extraHtml='<div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;">'+
+        parts.map(function(seg){
+          var idx=seg.indexOf(': ');
+          var lbl=idx>=0?seg.slice(0,idx):'';
+          var val=idx>=0?seg.slice(idx+2):seg;
+          return '<span style="background:var(--panel);border:1px solid var(--border);border-radius:3px;padding:2px 8px;font-family:Share Tech Mono,monospace;font-size:11px;color:var(--text-dim);">'+
+            (lbl?'<span style="color:'+color+';">'+escH(lbl)+':</span> ':'')+
+            '<span style="color:var(--text-bright);">'+escH(val)+'</span></span>';
+        }).join('')+
+      '</div>';
+    }
     return '<div style="display:flex;gap:12px;align-items:flex-start;padding:10px 14px;background:var(--panel2);border:1px solid var(--border);border-left:3px solid '+color+';border-radius:4px;margin-bottom:6px;">'+
       '<div style="min-width:110px;font-family:Share Tech Mono,monospace;font-size:11px;color:var(--text-dim);line-height:1.6;">'+
         '<div>'+escH(log.date)+'</div>'+
@@ -2482,7 +2496,7 @@ function renderHistory(){
       '<div style="flex:1;">'+
         '<span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 7px;border-radius:2px;border:1px solid '+color+';color:'+color+';margin-right:8px;">'+escH(log.action)+'</span>'+
         '<span style="font-weight:700;color:var(--text-bright);font-size:14px;">'+escH(log.detail)+'</span>'+
-        (log.extra?'<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">'+escH(log.extra)+'</div>':'')+
+        extraHtml+
       '</div>'+
     '</div>';
   }).join('');
@@ -2639,7 +2653,8 @@ function quickRenew(accId, profIdx){
     var per2=allP2.find(function(x){return x.id===pr2.assigneeId;});
     personName=per2?per2.name:'';
   }
-  addHistory('RENOVAR','Renovación rápida: '+(personName||label),'Plataforma: '+plat.name+' | Nueva fecha: '+newDate);
+  var slotDetail=(profIdx===null||profIdx===undefined)?'':(' | Perfil: '+(acc.profiles[profIdx].name||'?'));
+  addHistory('RENOVAR','Renovación rápida: '+(personName||'Sin asignar'),'Plataforma: '+plat.name+' | Correo/Usuario: '+acc.email+slotDetail+' | Cliente: '+(personName||'Sin asignar')+' | Anterior: '+(current||'Sin fecha')+' | Nueva fecha: '+newDate);
   saveDB(); updateCounts(); renderAlerts(alertTab);
   toast('Renovado hasta '+newDate,'success');
 }
@@ -3432,9 +3447,13 @@ function updateTrashCount(){
 function changeAccVencimiento(accId){
   var acc=DB.accounts.find(function(x){return x.id===accId;});
   if(!acc) return;
-  var newDate=prompt('Nueva fecha de vencimiento de la cuenta:\n(formato AAAA-MM-DD)',acc.expiry||'');
+  var oldDate=acc.expiry||'';
+  var newDate=prompt('Nueva fecha de vencimiento de la cuenta:\n(formato AAAA-MM-DD)',oldDate);
   if(newDate===null) return;
-  acc.expiry=newDate.trim();
+  newDate=newDate.trim();
+  acc.expiry=newDate;
+  var _vP=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
+  addHistory('RENOVAR','Vencimiento de cuenta renovado: '+acc.email,'Plataforma: '+_vP.name+' | Correo/Usuario: '+acc.email+' | Anterior: '+(oldDate||'Sin fecha')+' | Nueva fecha: '+newDate);
   saveDB(); updateCounts(); renderAccounts();
   toast('Fecha de vencimiento actualizada','success');
 }
@@ -3447,7 +3466,9 @@ function changeAccExpiry(accId){
   newDate=newDate.trim();
   acc.cutDate=newDate; // solo la fecha de corte del cliente
   var _eP=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
-  addHistory('RENOVAR','Fecha de cliente renovada: '+acc.email,'Nueva fecha: '+newDate+' | Plataforma: '+_eP.name);
+  var allPex=[].concat(DB.clients,DB.resellers);
+  var perEx=allPex.find(function(x){return x.id===acc.assigneeId;});
+  addHistory('RENOVAR','Fecha de cliente renovada: '+acc.email,'Plataforma: '+_eP.name+' | Correo/Usuario: '+acc.email+' | Cliente: '+(perEx?perEx.name:'Sin asignar')+' | Anterior: '+(current||'Sin fecha')+' | Nueva fecha: '+newDate);
   saveDB(); updateCounts(); renderAccounts();
   toast('Fecha actualizada','success');
 }
@@ -3497,7 +3518,10 @@ function extendProfile(el){
   acc.profiles[profIdx].cutDate=newDate;
   var _eAcc=DB.accounts.find(function(x){return x.id===accId;});
   var _eP=_eAcc?DB.platforms.find(function(x){return x.id===_eAcc.platformId;})||{name:'?'}:{name:'?'};
-  addHistory('RENOVAR','Fecha renovada: '+(_eAcc?_eAcc.profiles[profIdx].name:''),'Cuenta: '+(_eAcc?_eAcc.email:'')+' | Nueva fecha: '+newDate+' | Plataforma: '+_eP.name);
+  var _prEx=_eAcc.profiles[profIdx];
+  var allPex2=[].concat(DB.clients,DB.resellers);
+  var perEx2=allPex2.find(function(x){return x.id===_prEx.assigneeId;});
+  addHistory('RENOVAR','Fecha renovada: '+(_eAcc?_eAcc.profiles[profIdx].name:''),'Plataforma: '+_eP.name+' | Cuenta: '+(_eAcc?_eAcc.email:'')+' | Cliente: '+(perEx2?perEx2.name:'Sin asignar')+' | Anterior: '+(current||'Sin fecha')+' | Nueva fecha: '+newDate);
   saveDB(); updateCounts(); renderAccounts();
   toast('Fecha actualizada','success');
 }
@@ -4234,7 +4258,11 @@ function confirmSale(){
   updateCounts();
   // Copy message to clipboard
   var txt = (d.type==='email' && d.pr) ? buildEmailMsg(d.a, d.p, d.pr, d.duration) : buildMsg(d.a, d.p, d.pr, d.duration);
-  addHistory('ASIGNAR','Venta registrada: '+(d.person?d.person.name:''),'Plataforma: '+(d.p?d.p.name:'?')+' | Vence: '+expiry);
+  var saleAccEmail=d.a?d.a.email:'';
+  var saleSlot='';
+  if(d.type==='email'&&d.pr) saleSlot=' | Correo asignado: '+(d.pr.name||'');
+  else if(d.type==='profile'&&d.pr) saleSlot=' | Perfil: '+(d.pr.name||'');
+  addHistory('ASIGNAR','Venta registrada: '+(d.person?d.person.name:''),'Plataforma: '+(d.p?d.p.name:'?')+' | Cuenta: '+saleAccEmail+saleSlot+' | Cliente: '+(d.person?d.person.name:'')+' | Vence: '+expiry);
   navigator.clipboard.writeText(txt).then(function(){
     toast('Venta registrada y datos copiados al portapapeles','success');
   }).catch(function(){
