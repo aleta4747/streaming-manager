@@ -575,6 +575,16 @@ select option{background:var(--panel2);}
           <div class="tab" onclick="switchReloadTab('today')">Hoy</div>
           <div class="tab" onclick="switchReloadTab('tomorrow')">Mañana</div>
         </div>
+        <div id="reload-bulk-bar" style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:12px;background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:10px 14px;">
+          <label style="display:flex;align-items:center;gap:6px;font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;cursor:pointer;">
+            <input type="checkbox" id="reload-select-all" onchange="toggleReloadSelectAll(this.checked)"> Seleccionar todas (pestaña actual)
+          </label>
+          <span id="reload-sel-count" style="font-size:12px;color:var(--neon2);font-family:Share Tech Mono,monospace;">0 seleccionada(s)</span>
+          <input type="date" id="reload-bulk-date" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;">
+          <button class="btn btn-sm btn-primary" onclick="applyBulkReload()">&#8635; Recargar seleccionadas</button>
+          <button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);" onclick="clearReloadSelection()">Limpiar selección</button>
+          <button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);margin-left:auto;" onclick="downloadReloads()">&#128229; Descargar lista</button>
+        </div>
         <div id="reloads-list"></div>
       </div>
 
@@ -2996,6 +3006,7 @@ function copyVal(val,el){
 // HELPERS
 
 var reloadTab='expired';
+var reloadSelected=new Set();
 function switchReloadTab(tab){
   reloadTab=tab;
   document.querySelectorAll('#reload-tabs .tab').forEach(function(t,i){t.classList.toggle('active',['expired','today','tomorrow'][i]===tab);});
@@ -3037,19 +3048,25 @@ function updateReloadCount(){
 function renderReloads(tab){
   var items=tab==='expired'?getReloadsExpired():tab==='today'?getReloadsToday():getReloadsTomorrow();
   var el=document.getElementById('reloads-list');
+  updateReloadSelCount();
+  var selAllEl=document.getElementById('reload-select-all');
+  if(selAllEl) selAllEl.checked=items.length>0&&items.every(function(it){return reloadSelected.has(it.accId);});
   if(!items.length){el.innerHTML='<div class="empty-state"><p>Sin recargas en esta categoría</p></div>';return;}
   var borderColor=tab==='expired'?'var(--danger)':tab==='today'?'var(--danger)':'var(--warn)';
   el.innerHTML=items.map(function(item){
     var dl=getDayLabel(item.expiry);
-    return '<div style="background:var(--panel2);border:1px solid var(--border);border-left:3px solid '+borderColor+';border-radius:4px;margin-bottom:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;">'+
-      '<div>'+
-        '<div style="font-size:14px;font-weight:700;color:var(--text-bright);">'+
-          '<span style="color:'+escH(item.platColor||'var(--neon3)')+';font-weight:800;margin-right:8px;">'+escH(item.platName)+'</span>'+
-          '<span style="font-family:Share Tech Mono,monospace;color:var(--neon);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="goToPlatformFilter(\''+escH(item.platId||'')+'\',\''+escH(item.label)+'\'\)" title="Ver en plataforma">'+escH(item.label)+'</span>'+
-          ' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--neon3);color:var(--neon3);margin-left:6px;">'+escH(item.typeLbl)+'</span>'+
-          (item.provider?' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:4px;">'+escH(item.provider)+'<\/span>':'')+
+    return '<div style="background:var(--panel2);border:1px solid var(--border);border-left:3px solid '+borderColor+';border-radius:4px;margin-bottom:8px;padding:10px 14px;display:flex;align-items:center;justify-content:space-between;gap:10px;">'+
+      '<div style="display:flex;align-items:center;gap:10px;">'+
+        '<input type="checkbox" class="reload-chk" '+(reloadSelected.has(item.accId)?'checked':'')+' onchange="toggleReloadSelect(\''+item.accId+'\',this.checked)">'+
+        '<div>'+
+          '<div style="font-size:14px;font-weight:700;color:var(--text-bright);">'+
+            '<span style="color:'+escH(item.platColor||'var(--neon3)')+';font-weight:800;margin-right:8px;">'+escH(item.platName)+'</span>'+
+            '<span style="font-family:Share Tech Mono,monospace;color:var(--neon);font-size:13px;cursor:pointer;text-decoration:underline;text-underline-offset:3px;" onclick="goToPlatformFilter(\''+escH(item.platId||'')+'\',\''+escH(item.label)+'\'\)" title="Ver en plataforma">'+escH(item.label)+'</span>'+
+            ' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--neon3);color:var(--neon3);margin-left:6px;">'+escH(item.typeLbl)+'</span>'+
+            (item.provider?' <span style="font-family:Share Tech Mono,monospace;font-size:10px;padding:1px 6px;border-radius:2px;border:1px solid var(--border);color:var(--text-dim);background:rgba(255,255,255,0.04);margin-left:4px;">'+escH(item.provider)+'<\/span>':'')+
+          '</div>'+
+          '<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">Vence cuenta: '+escH(item.expiry)+'</div>'+
         '</div>'+
-        '<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">Vence cuenta: '+escH(item.expiry)+'</div>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:10px;">'+
         '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="quickRenew(\''+item.accId+'\',\'expiry\')" title="Registrar recarga y actualizar fecha">&#8635; Recargada</button>'+
@@ -3057,6 +3074,79 @@ function renderReloads(tab){
       '</div>'+
     '</div>';
   }).join('');
+}
+function toggleReloadSelect(accId,checked){
+  if(checked) reloadSelected.add(accId); else reloadSelected.delete(accId);
+  updateReloadSelCount();
+  var selAllEl=document.getElementById('reload-select-all');
+  if(selAllEl){
+    var items=reloadTab==='expired'?getReloadsExpired():reloadTab==='today'?getReloadsToday():getReloadsTomorrow();
+    selAllEl.checked=items.length>0&&items.every(function(it){return reloadSelected.has(it.accId);});
+  }
+}
+function toggleReloadSelectAll(checked){
+  var items=reloadTab==='expired'?getReloadsExpired():reloadTab==='today'?getReloadsToday():getReloadsTomorrow();
+  items.forEach(function(it){ if(checked) reloadSelected.add(it.accId); else reloadSelected.delete(it.accId); });
+  renderReloads(reloadTab);
+}
+function clearReloadSelection(){
+  reloadSelected.clear();
+  renderReloads(reloadTab);
+}
+function updateReloadSelCount(){
+  var el=document.getElementById('reload-sel-count');
+  if(el) el.textContent=reloadSelected.size+' seleccionada(s)';
+}
+function applyBulkReload(){
+  if(!reloadSelected.size){ toast('Selecciona al menos una cuenta','warn'); return; }
+  var dateVal=(document.getElementById('reload-bulk-date')||{}).value;
+  if(!dateVal){ toast('Selecciona la fecha de recarga','warn'); return; }
+  if(!confirm('¿Aplicar la fecha '+dateVal+' a '+reloadSelected.size+' cuenta(s) seleccionada(s)?')) return;
+  var count=0;
+  reloadSelected.forEach(function(accId){
+    var acc=DB.accounts.find(function(x){return x.id===accId;});
+    if(!acc) return;
+    var oldDate=acc.expiry||'';
+    acc.expiry=dateVal;
+    var p=DB.platforms.find(function(x){return x.id===acc.platformId;})||{name:'?'};
+    addHistory('RENOVAR','Recarga masiva: '+acc.email,'Plataforma: '+p.name+' | Correo/Usuario: '+acc.email+' | Anterior: '+(oldDate||'Sin fecha')+' | Nueva fecha: '+dateVal);
+    count++;
+  });
+  reloadSelected.clear();
+  saveDB(); updateCounts(); renderReloads(reloadTab);
+  toast(count+' cuenta(s) recargadas hasta '+dateVal,'success');
+}
+function downloadReloads(){
+  var items=getReloadScopeItems();
+  if(!items.length){ toast('No hay cuentas con fecha de recarga para exportar','warn'); return; }
+  if(!window.XLSX){ toast('Librería Excel no disponible, recarga la página','warn'); return; }
+  items=items.slice().sort(function(a,b){ return new Date(a.expiry)-new Date(b.expiry); });
+  var now=todayVE();
+  function estadoFor(exp){
+    var d=new Date(exp); d.setUTCHours(0,0,0,0);
+    var diff=Math.round((d-now)/86400000);
+    if(diff<0) return 'Vencida';
+    if(diff===0) return 'Hoy';
+    if(diff===1) return 'Mañana';
+    return 'En '+diff+' día(s)';
+  }
+  var HDRS=[
+    ['Recargas de Cuentas — Streaming AletaG8','','','','',''],
+    ['Plataforma','Correo / Usuario','Tipo','Proveedor','Vence','Estado']
+  ];
+  var data=HDRS.map(function(r){return r.slice();});
+  items.forEach(function(it){
+    data.push([it.platName,it.label,it.typeLbl,it.provider||'',it.expiry,estadoFor(it.expiry)]);
+  });
+  var ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:22},{wch:28},{wch:14},{wch:16},{wch:14},{wch:14}];
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Recargas');
+  var now2=new Date();
+  var dateStr=now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-'+String(now2.getDate()).padStart(2,'0');
+  XLSX.writeFile(wb, 'recargas_'+dateStr+'.xlsx');
+  addHistory('EXPORTAR','Descarga de lista de recargas','Total: '+items.length);
+  toast(items.length+' cuenta(s) exportadas','success');
 }
 
 function getExpiryScopeItems(){
