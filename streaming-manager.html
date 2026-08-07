@@ -1009,6 +1009,12 @@ select option{background:var(--panel2);}
           <input type="date" id="sale-start">
         </div>
       </div>
+      <div class="fr" id="sale-finalclient-row">
+        <div class="fg">
+          <label>Nombre del cliente final (opcional)</label>
+          <input type="text" id="sale-final-client" placeholder="Deja vacío si no aplica">
+        </div>
+      </div>
       <div id="sale-preview" style="display:none;margin-top:16px;background:var(--bg);border:1px solid var(--border-glow);border-radius:4px;padding:14px;">
         <div style="font-family:Share Tech Mono,monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:8px;text-transform:uppercase">Vista previa del mensaje</div>
         <pre id="sale-preview-txt" style="font-family:Share Tech Mono,monospace;font-size:12px;color:var(--text);white-space:pre-wrap;line-height:1.7;"></pre>
@@ -4119,6 +4125,7 @@ function openSaleModal(){
   });
   var esC=document.getElementById('sale-es-cost'); if(esC) esC.value='';
   var esG=document.getElementById('sale-es-gplay'); if(esG) esG.value='';
+  var fc=document.getElementById('sale-final-client'); if(fc) fc.value='';
   openModal('modal-sale');
 }
 function updateSalePersonList(){
@@ -4310,6 +4317,7 @@ function confirmSale(){
   if(!d){ toast('Selecciona una cuenta o perfil disponible','warn'); return; }
   if(!d.person){ toast('Selecciona un cliente o revendedor','warn'); return; }
   var expiry = document.getElementById('sale-start').value||'';
+  var finalClientName = (document.getElementById('sale-final-client')||{value:''}).value.trim();
   // Assign the account/profile
   var personType = document.getElementById('sale-person-type').value;
   if(d.type==='complete'){
@@ -4319,8 +4327,7 @@ function confirmSale(){
       DB.accounts[accIdx].assigneeId = d.person.id;
       DB.accounts[accIdx].cutDate = expiry;
       if(!DB.accounts[accIdx].expiry) DB.accounts[accIdx].expiry = expiry;
-      var clientName=prompt('Nombre del cliente final para esta cuenta\n(deja vacío si no aplica):','');
-      if(clientName!==null) DB.accounts[accIdx].resellerClient=clientName.trim();
+      DB.accounts[accIdx].resellerClient = finalClientName;
     }
   } else if(d.type==='profile' || d.type==='email'){
     var accIdx2 = DB.accounts.findIndex(function(x){return x.id===d.chosen.accId;});
@@ -4334,11 +4341,9 @@ function confirmSale(){
       if(d.type==='email' && d.pr){
         DB.accounts[accIdx2].profiles[pi].name = d.pr.name;
         DB.accounts[accIdx2].profiles[pi].pin  = d.pr.pin;
-        var clientNameE=prompt('Nombre del cliente para este correo\n(deja vacío si no aplica):','');
-        if(clientNameE!==null) DB.accounts[accIdx2].profiles[pi].resellerClient=clientNameE.trim();
+        DB.accounts[accIdx2].profiles[pi].resellerClient = finalClientName;
       } else if(d.type==='profile'){
-        var clientNameP=prompt('Nombre del cliente para este perfil\n(deja vacío si no aplica):','');
-        if(clientNameP!==null) DB.accounts[accIdx2].profiles[pi].cnotes=clientNameP.trim();
+        DB.accounts[accIdx2].profiles[pi].cnotes = finalClientName;
       }
     }
   }
