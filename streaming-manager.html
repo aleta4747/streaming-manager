@@ -742,7 +742,10 @@ select option{background:var(--panel2);}
   <div class="modal" style="max-width:700px;max-height:85vh;overflow-y:auto;">
     <div class="modal-hd">
       <div class="modal-title" id="history-title">Historial</div>
-      <button class="modal-x" onclick="closeModal('modal-person-history')">x</button>
+      <div style="display:flex;gap:8px;align-items:center;">
+        <button class="btn btn-sm btn-primary" onclick="downloadPersonAccounts()">&#128229; Descargar</button>
+        <button class="modal-x" onclick="closeModal('modal-person-history')">x</button>
+      </div>
     </div>
     <div class="modal-body" id="history-body"></div>
   </div>
@@ -2489,6 +2492,7 @@ function showPersonHistory(personId, personType){
   var list=personType==='client'?DB.clients:DB.resellers;
   var person=list.find(function(x){return x.id===personId;});
   if(!person) return;
+  window._histPerson={id:personId,type:personType,name:person.name};
   document.getElementById('history-title').textContent='Historial de '+person.name;
   var rows=[];
   DB.accounts.forEach(function(a){
@@ -4252,6 +4256,55 @@ function confirmSale(){
   setTimeout(function(){ showSendModal(txt, waUrlSale, tgUrlSale); }, 300);
   if(currentView==='dashboard') renderDashboard();
 }
+// ── DESCARGAR CUENTAS DE PERSONA (cliente/revendedor) ─────────
+function downloadPersonAccounts(){
+  var ctx=window._histPerson;
+  if(!ctx) return;
+  var rows=[];
+  DB.accounts.forEach(function(a){
+    var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?'};
+    if(a.type==='complete'&&a.assigneeId===ctx.id){
+      rows.push({plataforma:p.name,tipo:'Completa',usuario:a.email||'',contrasena:a.password||'',pin:'—',vence:a.cutDate||a.expiry||''});
+    } else if(a.profiles){
+      a.profiles.forEach(function(pr,i){
+        if(pr.assigneeId!==ctx.id) return;
+        var typeLbl=a.type==='email'?'Correo':'Perfil';
+        rows.push({
+          plataforma:p.name,
+          tipo:typeLbl,
+          usuario:a.type==='email'?(a.email||''):(pr.name||('Perfil '+(i+1))),
+          contrasena:a.type==='email'?(pr.pin||''):(a.password||''),
+          pin:a.type==='email'?'—':(pr.pin||''),
+          vence:pr.expiry||pr.cutDate||''
+        });
+      });
+    }
+  });
+  if(!rows.length){ toast('No hay cuentas activas para descargar','warn'); return; }
+  if(!window.XLSX){ toast('Librería Excel no disponible, recarga la página','warn'); return; }
+  rows.sort(function(a,b){ return a.plataforma.localeCompare(b.plataforma); });
+
+  var HDRS=[
+    ['Cuentas activas de '+ctx.name,'','','','',''],
+    ['Plataforma','Tipo','Usuario / Correo','Contraseña','PIN','Vence']
+  ];
+  var data=HDRS.map(function(r){return r.slice();});
+  rows.forEach(function(r){ data.push([r.plataforma,r.tipo,r.usuario,r.contrasena,r.pin,r.vence]); });
+  var ws=XLSX.utils.aoa_to_sheet(data);
+  ws['!cols']=[{wch:24},{wch:12},{wch:26},{wch:20},{wch:12},{wch:14}];
+  var wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb, ws, 'Cuentas');
+
+  var now2=new Date();
+  var dateStr=now2.getFullYear()+'-'+String(now2.getMonth()+1).padStart(2,'0')+'-'+String(now2.getDate()).padStart(2,'0');
+  var safeName=(ctx.name||'persona').replace(/[^a-z0-9]+/gi,'_');
+  XLSX.writeFile(wb, 'cuentas_'+safeName+'_'+dateStr+'.xlsx');
+
+  addHistory('EXPORTAR','Descarga de cuentas de '+ctx.name,(ctx.type==='client'?'Cliente':'Revendedor')+' | Total: '+rows.length);
+  toast(rows.length+' cuenta(s) exportadas','success');
+}
+// ─────────────────────────────────────────────────────────────
+
 // ── DESCARGAR LIBRES ──────────────────────────────────────────
 function downloadLibres(){
   var rowsPerf = []; // perfil + correo
