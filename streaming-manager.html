@@ -11,6 +11,7 @@
 <link rel="manifest" href="manifest.json">
 <title>Streaming AletaG8</title>
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&family=Share+Tech+Mono&family=Poppins:wght@400;600;700;800&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tabler-icons/2.47.0/iconfont/tabler-icons.min.css">
 <style>
 :root{--bg:#050810;--bg2:#080d1a;--bg3:#0c1428;--panel:#0a1020;--panel2:#0f1830;--border:#0d2244;--border-glow:#1a3a6e;--neon:#00b4ff;--neon2:#0066cc;--neon3:#00e5ff;--neon-dim:rgba(0,180,255,0.15);--text:#c8dff5;--text-dim:#5a7a9a;--text-bright:#e8f4ff;--danger:#ff3366;--danger-dim:rgba(255,51,102,0.15);--warn:#ffaa00;--warn-dim:rgba(255,170,0,0.15);--success:#00ff88;--success-dim:rgba(0,255,136,0.1);}
 *{margin:0;padding:0;box-sizing:border-box;}
@@ -426,25 +427,25 @@ select option{background:var(--panel2);}
     </div>
     <div class="nav-sec">
       <div class="nav-lbl">// navegacion</div>
-      <div class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')"><span class="nav-icon">&#11041;</span> Dashboard</div>
-      <div class="nav-item" id="nav-finance" onclick="showView('finance')"><span class="nav-icon">&#128178;</span> Finanzas</div>
-      <div class="nav-item" id="nav-history" onclick="showView('history')"><span class="nav-icon">&#128336;</span> Historial <span class="badge" id="history-count" style="background:var(--text-dim);color:var(--bg)">0</span></div>
+      <div class="nav-item active" id="nav-dashboard" onclick="showView('dashboard')"><span class="nav-icon"><i class="ti ti-layout-dashboard" style="vertical-align:-2px;"></i></span> Dashboard</div>
+      <div class="nav-item" id="nav-finance" onclick="showView('finance')"><span class="nav-icon"><i class="ti ti-coin" style="vertical-align:-2px;"></i></span> Finanzas</div>
+      <div class="nav-item" id="nav-history" onclick="showView('history')"><span class="nav-icon"><i class="ti ti-history" style="vertical-align:-2px;"></i></span> Historial <span class="badge" id="history-count" style="background:var(--text-dim);color:var(--bg)">0</span></div>
     </div>
     <div class="nav-sec">
       <div class="nav-lbl">// directorio</div>
-      <div class="nav-item" id="nav-clients" onclick="showView('clients')"><span class="nav-icon">&#9678;</span> Clientes <span class="badge" id="nav-cli-count">0</span></div>
-      <div class="nav-item" id="nav-resellers" onclick="showView('resellers')"><span class="nav-icon">&#11041;</span> Revendedores <span class="badge" id="nav-res-count">0</span></div>
+      <div class="nav-item" id="nav-clients" onclick="showView('clients')"><span class="nav-icon"><i class="ti ti-users" style="vertical-align:-2px;"></i></span> Clientes <span class="badge" id="nav-cli-count">0</span></div>
+      <div class="nav-item" id="nav-resellers" onclick="showView('resellers')"><span class="nav-icon"><i class="ti ti-users-group" style="vertical-align:-2px;"></i></span> Revendedores <span class="badge" id="nav-res-count">0</span></div>
     </div>
     <div class="nav-sec">
       <div class="nav-lbl">// alertas</div>
-      <div class="nav-item" id="nav-alerts" onclick="showView('alerts')"><span class="nav-icon">&#9888;</span> Vencimientos <span class="badge danger" id="nav-alert-count">0</span></div>
-      <div class="nav-item" id="nav-reloads" onclick="showView('reloads')"><span class="nav-icon">&#128260;</span> Recargas <span class="badge" id="nav-reload-count" style="background:var(--warn);color:var(--bg)">0</span></div>
-      <div class="nav-item" id="nav-trash" onclick="showView('trash')"><span class="nav-icon">&#128465;</span> Papelera <span class="badge" id="trash-count" style="background:var(--text-dim);color:var(--bg)">0</span></div>
-      <div class="nav-item" id="nav-passreminders" onclick="showView('passreminders')"><span class="nav-icon">&#128273;</span> Avisos de clave <span class="badge danger" id="passreminder-count" style="display:none">0</span></div>
+      <div class="nav-item" id="nav-alerts" onclick="showView('alerts')"><span class="nav-icon"><i class="ti ti-alert-triangle" style="vertical-align:-2px;"></i></span> Vencimientos <span class="badge danger" id="nav-alert-count">0</span></div>
+      <div class="nav-item" id="nav-reloads" onclick="showView('reloads')"><span class="nav-icon"><i class="ti ti-refresh" style="vertical-align:-2px;"></i></span> Recargas <span class="badge" id="nav-reload-count" style="background:var(--warn);color:var(--bg)">0</span></div>
+      <div class="nav-item" id="nav-trash" onclick="showView('trash')"><span class="nav-icon"><i class="ti ti-trash" style="vertical-align:-2px;"></i></span> Papelera <span class="badge" id="trash-count" style="background:var(--text-dim);color:var(--bg)">0</span></div>
+      <div class="nav-item" id="nav-passreminders" onclick="showView('passreminders')"><span class="nav-icon"><i class="ti ti-key" style="vertical-align:-2px;"></i></span> Avisos de clave <span class="badge danger" id="passreminder-count" style="display:none">0</span></div>
     </div>
     <div class="nav-sec">
       <div class="nav-lbl">// configuracion</div>
-      <div class="nav-item" id="nav-settings" onclick="showView('settings')"><span class="nav-icon">&#9881;</span> Configuración</div>
+      <div class="nav-item" id="nav-settings" onclick="showView('settings')"><span class="nav-icon"><i class="ti ti-settings" style="vertical-align:-2px;"></i></span> Configuración</div>
     </div>
   </nav>
 
@@ -452,12 +453,12 @@ select option{background:var(--panel2);}
     <div id="topbar">
       <div class="topbar-title" id="page-title">Dashboard</div>
       <div class="topbar-search">
-        <span style="color:var(--text-dim);font-size:14px;">&#128269;</span>
+        <span style="color:var(--text-dim);font-size:14px;"><i class="ti ti-search" style="vertical-align:-2px;"></i></span>
         <input type="text" id="global-search" placeholder="Buscar por correo, clave, PIN, perfil, cliente, plataforma..." oninput="runGlobalSearch()" autocomplete="off">
-        <button class="gs-clear" onclick="clearGlobalSearch()" style="display:none" id="gs-clear-btn">&#10005;</button>
+        <button class="gs-clear" onclick="clearGlobalSearch()" style="display:none" id="gs-clear-btn"><i class="ti ti-x" style="vertical-align:-2px;"></i></button>
       </div>
       <div class="topbar-actions">
-        <button class="btn btn-success" onclick="openSaleModal()" style="background:rgba(0,255,136,0.12);border-color:var(--success);color:var(--success);">&#128722; Nueva Venta</button>
+        <button class="btn btn-success" onclick="openSaleModal()" style="background:rgba(0,255,136,0.12);border-color:var(--success);color:var(--success);"><i class="ti ti-shopping-cart" style="vertical-align:-2px;"></i> Nueva Venta</button>
         <button class="btn btn-primary" onclick="openQuickAdd()">+ Nuevo</button>
       </div>
     </div>
@@ -504,7 +505,7 @@ select option{background:var(--panel2);}
         <div class="sec-hd">
           <div class="sec-title">Cuentas</div>
           <div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap;">
-            <div class="search-bar"><span>&#128269;</span><input type="text" placeholder="Buscar..." id="search-acc" oninput="renderAccounts()"></div>
+            <div class="search-bar"><span><i class="ti ti-search" style="vertical-align:-2px;"></i></span><input type="text" placeholder="Buscar..." id="search-acc" oninput="renderAccounts()"></div>
             <select id="filter-plat" onchange="renderAccounts()" style="max-width:160px"><option value="">Todas</option></select>
             <button class="btn btn-primary" onclick="openAccountModal()">+ Nueva cuenta</button>
           </div>
@@ -568,7 +569,7 @@ select option{background:var(--panel2);}
       </div>
 
       <div id="view-reloads" class="view">
-        <div class="sec-hd"><div class="sec-title">&#128260; Recargas de Cuentas</div></div>
+        <div class="sec-hd"><div class="sec-title"><i class="ti ti-refresh" style="vertical-align:-2px;"></i> Recargas de Cuentas</div></div>
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;font-family:Share Tech Mono,monospace;">Fechas de vencimiento de las cuentas con el proveedor</div>
         <div class="tabs" id="reload-tabs">
           <div class="tab active" onclick="switchReloadTab('expired')">Vencidas</div>
@@ -581,27 +582,27 @@ select option{background:var(--panel2);}
           </label>
           <span id="reload-sel-count" style="font-size:12px;color:var(--neon2);font-family:Share Tech Mono,monospace;">0 seleccionada(s)</span>
           <input type="date" id="reload-bulk-date" style="background:var(--panel);border:1px solid var(--border);border-radius:4px;padding:6px 10px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;">
-          <button class="btn btn-sm btn-primary" onclick="applyBulkReload()">&#8635; Recargar seleccionadas</button>
+          <button class="btn btn-sm btn-primary" onclick="applyBulkReload()"><i class="ti ti-rotate" style="vertical-align:-2px;"></i> Recargar seleccionadas</button>
           <button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);" onclick="clearReloadSelection()">Limpiar selección</button>
-          <button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);margin-left:auto;" onclick="downloadReloads()">&#128229; Descargar lista</button>
+          <button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);margin-left:auto;" onclick="downloadReloads()"><i class="ti ti-download" style="vertical-align:-2px;"></i> Descargar lista</button>
         </div>
         <div id="reloads-list"></div>
       </div>
 
       <div id="view-history" class="view">
         <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="sec-title">&#128336; Historial de Cambios</div>
-          <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger);" onclick="clearHistory()">&#128465; Limpiar</button>
+          <div class="sec-title"><i class="ti ti-history" style="vertical-align:-2px;"></i> Historial de Cambios</div>
+          <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger);" onclick="clearHistory()"><i class="ti ti-trash" style="vertical-align:-2px;"></i> Limpiar</button>
         </div>
         <div id="history-list"></div>
       </div>
 
       <div id="view-trash" class="view">
         <div class="sec-hd" style="display:flex;align-items:center;justify-content:space-between;">
-          <div class="sec-title">&#128465; Papelera de Perfiles</div>
+          <div class="sec-title"><i class="ti ti-trash" style="vertical-align:-2px;"></i> Papelera de Perfiles</div>
           <div style="display:flex;gap:8px;align-items:center;">
             <input id="trash-search" type="text" placeholder="Buscar en papelera..." oninput="renderTrash()" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:220px;">
-            <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger);" onclick="clearAllTrash()">&#128465; Vaciar</button>
+            <button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger);" onclick="clearAllTrash()"><i class="ti ti-trash" style="vertical-align:-2px;"></i> Vaciar</button>
           </div>
         </div>
         <div id="trash-count-label" style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-bottom:12px;"></div>
@@ -609,13 +610,13 @@ select option{background:var(--panel2);}
       </div>
 
       <div id="view-passreminders" class="view">
-        <div class="sec-hd"><div class="sec-title">&#128273; Avisos de cambio de clave</div></div>
+        <div class="sec-hd"><div class="sec-title"><i class="ti ti-key" style="vertical-align:-2px;"></i> Avisos de cambio de clave</div></div>
         <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;font-family:Share Tech Mono,monospace;">Cuentas cuya clave fue cambiada recientemente. Marca cada una como entregada cuando hayas enviado la nueva clave.</div>
         <div id="passreminders-list"></div>
       </div>
 
       <div id="view-settings" class="view">
-        <div class="sec-hd"><div class="sec-title">&#9881; Configuración</div></div>
+        <div class="sec-hd"><div class="sec-title"><i class="ti ti-settings" style="vertical-align:-2px;"></i> Configuración</div></div>
         <div style="max-width:480px;">
           <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:16px;">
             <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:14px;">FECHA Y HORA DEL SISTEMA</div>
@@ -625,8 +626,8 @@ select option{background:var(--panel2);}
               <div class="fg"><label>Hora manual (HH:MM)</label><input type="time" id="cfg-time" style="font-family:'Share Tech Mono',monospace;"></div>
             </div>
             <div style="display:flex;gap:8px;margin-top:16px;">
-              <button class="btn btn-primary" onclick="saveSettings()">&#10003; Guardar</button>
-              <button class="btn" style="border-color:var(--border);color:var(--text-dim)" onclick="clearSettings()">&#10005; Usar hora real</button>
+              <button class="btn btn-primary" onclick="saveSettings()"><i class="ti ti-check" style="vertical-align:-2px;"></i> Guardar</button>
+              <button class="btn" style="border-color:var(--border);color:var(--text-dim)" onclick="clearSettings()"><i class="ti ti-x" style="vertical-align:-2px;"></i> Usar hora real</button>
             </div>
             <div id="cfg-status" style="margin-top:12px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--neon2);min-height:18px;"></div>
           </div>
@@ -643,8 +644,8 @@ select option{background:var(--panel2);}
             <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:14px;">EXPORTAR / IMPORTAR DATOS</div>
             <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">Guarda una copia de todos tus datos (cuentas, clientes, plataformas, etc.) en un archivo JSON, o carga un respaldo previo.</div>
             <div style="display:flex;gap:8px;flex-wrap:wrap;">
-              <button class="btn btn-primary" onclick="exportData()">&#128229; Exportar (Guardar)</button>
-              <button class="btn" style="border-color:var(--neon2);color:var(--neon2);" onclick="document.getElementById('import-file').click()">&#128228; Importar (Cargar)</button>
+              <button class="btn btn-primary" onclick="exportData()"><i class="ti ti-download" style="vertical-align:-2px;"></i> Exportar (Guardar)</button>
+              <button class="btn" style="border-color:var(--neon2);color:var(--neon2);" onclick="document.getElementById('import-file').click()"><i class="ti ti-upload" style="vertical-align:-2px;"></i> Importar (Cargar)</button>
               <input type="file" id="import-file" accept=".json" style="display:none" onchange="importData(this)">
             </div>
           </div>
@@ -652,7 +653,7 @@ select option{background:var(--panel2);}
             <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:14px;">☁️ SINCRONIZAR CON GOOGLE DRIVE</div>
             <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">Sube o baja tus datos desde Google Drive para sincronizar entre PC y teléfono.</div>
             <div id="drive-auth-section">
-              <button class="btn btn-primary" onclick="driveSignIn()">&#128100; Conectar con Google</button>
+              <button class="btn btn-primary" onclick="driveSignIn()"><i class="ti ti-user" style="vertical-align:-2px;"></i> Conectar con Google</button>
             </div>
             <div id="drive-sync-section" style="display:none;">
               <div id="drive-user-info" style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon2);margin-bottom:12px;"></div>
@@ -668,37 +669,37 @@ select option{background:var(--panel2);}
             <div id="backup-status" style="margin-top:12px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--neon2);min-height:18px;"></div>
           </div>
           <div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:20px;margin-bottom:16px;">
-            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:14px;">&#128190; DESCARGAR LIBRES</div>
+            <div style="font-family:'Share Tech Mono',monospace;font-size:10px;letter-spacing:2px;color:var(--neon2);margin-bottom:14px;"><i class="ti ti-device-floppy" style="vertical-align:-2px;"></i> DESCARGAR LIBRES</div>
             <div style="font-size:12px;color:var(--text-dim);margin-bottom:16px;line-height:1.6;">Descarga todas las cuentas y perfiles sin asignar en formato Excel (.xlsx), listo para compartir o usar como stock de respaldo.</div>
-            <button class="btn btn-primary" onclick="downloadLibres()">&#128229; Descargar cuentas libres</button>
+            <button class="btn btn-primary" onclick="downloadLibres()"><i class="ti ti-download" style="vertical-align:-2px;"></i> Descargar cuentas libres</button>
             <div id="libres-status" style="margin-top:10px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--neon2);min-height:16px;"></div>
           </div>
         </div>
       </div>
 
       <div id="view-finance" class="view">
-        <div class="sec-hd"><div class="sec-title">&#128178; Finanzas</div></div>
+        <div class="sec-hd"><div class="sec-title"><i class="ti ti-coin" style="vertical-align:-2px;"></i> Finanzas</div></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:14px;" id="finance-stats"></div>
         <div id="finance-balance-bar" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px 18px;margin-bottom:24px;"></div>
         <div class="tabs" id="finance-tabs">
-          <div class="tab active" onclick="switchFinanceTab('costs')">&#128229; Costos</div>
-          <div class="tab" onclick="switchFinanceTab('rates')">&#128176; Tarifas</div>
-          <div class="tab" onclick="switchFinanceTab('income')">&#128230; Ingresos</div>
+          <div class="tab active" onclick="switchFinanceTab('costs')"><i class="ti ti-download" style="vertical-align:-2px;"></i> Costos</div>
+          <div class="tab" onclick="switchFinanceTab('rates')"><i class="ti ti-cash" style="vertical-align:-2px;"></i> Tarifas</div>
+          <div class="tab" onclick="switchFinanceTab('income')"><i class="ti ti-package" style="vertical-align:-2px;"></i> Ingresos</div>
         </div>
         <div id="finance-tab-costs" class="finance-tabpanel">
           <div class="sec-hd" style="margin:14px 0 10px;">
-            <div class="sec-title" style="font-size:13px;">&#128229; Costos mensuales</div>
+            <div class="sec-title" style="font-size:13px;"><i class="ti ti-download" style="vertical-align:-2px;"></i> Costos mensuales</div>
             <input id="finance-costs-search" type="text" placeholder="Buscar cuenta..." oninput="renderFinance()" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:200px;">
           </div>
           <div id="finance-costs"></div>
         </div>
         <div id="finance-tab-rates" class="finance-tabpanel" style="display:none;">
-          <div class="sec-hd" style="margin:14px 0 10px;"><div class="sec-title" style="font-size:13px;">&#128176; Tarifas de venta</div></div>
+          <div class="sec-hd" style="margin:14px 0 10px;"><div class="sec-title" style="font-size:13px;"><i class="ti ti-cash" style="vertical-align:-2px;"></i> Tarifas de venta</div></div>
           <div id="finance-rates"></div>
         </div>
         <div id="finance-tab-income" class="finance-tabpanel" style="display:none;">
           <div class="sec-hd" style="margin:14px 0 10px;">
-            <div class="sec-title" style="font-size:13px;">&#128230; Ingresos por slot asignado</div>
+            <div class="sec-title" style="font-size:13px;"><i class="ti ti-package" style="vertical-align:-2px;"></i> Ingresos por slot asignado</div>
             <input id="finance-income-search" type="text" placeholder="Buscar plataforma o cliente..." oninput="renderFinance()" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:220px;">
           </div>
           <div id="finance-income"></div>
@@ -712,7 +713,7 @@ select option{background:var(--panel2);}
 <div id="modal-transfer" class="modal-overlay">
   <div class="modal" style="max-width:500px;">
     <div class="modal-hd">
-      <div class="modal-title">&#8646; Transferir Perfil</div>
+      <div class="modal-title"><i class="ti ti-transfer" style="vertical-align:-2px;"></i> Transferir Perfil</div>
       <button class="modal-x" onclick="closeModal('modal-transfer')">x</button>
     </div>
     <div class="modal-body">
@@ -733,14 +734,14 @@ select option{background:var(--panel2);}
     </div>
     <div class="modal-ft">
       <button class="btn" onclick="closeModal('modal-transfer')">Cancelar</button>
-      <button class="btn btn-primary" onclick="confirmTransfer()">&#8646; Transferir</button>
+      <button class="btn btn-primary" onclick="confirmTransfer()"><i class="ti ti-transfer" style="vertical-align:-2px;"></i> Transferir</button>
     </div>
   </div>
 </div>
 <div id="modal-transfer-complete" class="modal-overlay">
   <div class="modal" style="max-width:500px;">
     <div class="modal-hd">
-      <div class="modal-title">&#8646; Transferir cuenta completa</div>
+      <div class="modal-title"><i class="ti ti-transfer" style="vertical-align:-2px;"></i> Transferir cuenta completa</div>
       <button class="modal-x" onclick="closeModal('modal-transfer-complete')">x</button>
     </div>
     <div class="modal-body">
@@ -756,7 +757,7 @@ select option{background:var(--panel2);}
     </div>
     <div class="modal-ft">
       <button class="btn" onclick="closeModal('modal-transfer-complete')">Cancelar</button>
-      <button class="btn btn-primary" onclick="tcConfirm()">&#8646; Transferir</button>
+      <button class="btn btn-primary" onclick="tcConfirm()"><i class="ti ti-transfer" style="vertical-align:-2px;"></i> Transferir</button>
     </div>
   </div>
 </div>
@@ -765,7 +766,7 @@ select option{background:var(--panel2);}
     <div class="modal-hd">
       <div class="modal-title" id="history-title">Historial</div>
       <div style="display:flex;gap:8px;align-items:center;">
-        <button class="btn btn-sm btn-primary" onclick="downloadPersonAccounts()">&#128229; Descargar</button>
+        <button class="btn btn-sm btn-primary" onclick="downloadPersonAccounts()"><i class="ti ti-download" style="vertical-align:-2px;"></i> Descargar</button>
         <button class="modal-x" onclick="closeModal('modal-person-history')">x</button>
       </div>
     </div>
@@ -784,7 +785,7 @@ select option{background:var(--panel2);}
         <div class="fg"><label>Nombre</label><input type="text" id="p-name" placeholder="Netflix, Disney+..."></div>
         <div class="fg"><label>Categoria</label><select id="p-cat" style="font-size:17px;font-weight:700;"><option>Streaming</option><option>Musica</option><option>Gaming</option><option>Software</option><option>Otro</option></select></div>
       </div>
-      <div class="fg"><label>Logo (URL o imagen)</label><div style="display:flex;gap:8px;align-items:center;"><input type="url" id="p-logo" placeholder="https://... o sube una imagen &darr;" style="flex:1"><label for="p-logo-file" class="btn btn-copy btn-sm" style="cursor:pointer;white-space:nowrap;margin:0;">&#128190; Subir</label><input type="file" id="p-logo-file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"></div><div id="p-logo-preview" style="margin-top:8px;display:none;text-align:center;"><img id="p-logo-preview-img" style="max-height:60px;max-width:160px;object-fit:contain;border-radius:4px;border:1px solid var(--border);"><button onclick="clearLogoPreview()" class="btn btn-danger btn-sm" style="margin-left:8px;vertical-align:middle;">&#10005; Quitar</button></div></div>
+      <div class="fg"><label>Logo (URL o imagen)</label><div style="display:flex;gap:8px;align-items:center;"><input type="url" id="p-logo" placeholder="https://... o sube una imagen &darr;" style="flex:1"><label for="p-logo-file" class="btn btn-copy btn-sm" style="cursor:pointer;white-space:nowrap;margin:0;"><i class="ti ti-device-floppy" style="vertical-align:-2px;"></i> Subir</label><input type="file" id="p-logo-file" accept="image/*" style="display:none" onchange="handleLogoUpload(this)"></div><div id="p-logo-preview" style="margin-top:8px;display:none;text-align:center;"><img id="p-logo-preview-img" style="max-height:60px;max-width:160px;object-fit:contain;border-radius:4px;border:1px solid var(--border);"><button onclick="clearLogoPreview()" class="btn btn-danger btn-sm" style="margin-left:8px;vertical-align:middle;"><i class="ti ti-x" style="vertical-align:-2px;"></i> Quitar</button></div></div>
       <div class="fg">
         <label>Color</label>
         <div class="color-options">
@@ -935,7 +936,7 @@ select option{background:var(--panel2);}
 <div class="modal-overlay" id="modal-sale">
   <div class="modal lg">
     <div class="modal-hd">
-      <div class="modal-title">&#128722; Nueva Venta</div>
+      <div class="modal-title"><i class="ti ti-shopping-cart" style="vertical-align:-2px;"></i> Nueva Venta</div>
       <button class="modal-x" onclick="closeModal('modal-sale')">x</button>
     </div>
     <div class="modal-body">
@@ -1034,8 +1035,8 @@ select option{background:var(--panel2);}
     </div>
     <div class="modal-ft">
       <button class="btn" style="border-color:var(--border);color:var(--text-dim)" onclick="closeModal('modal-sale')">Cancelar</button>
-      <button class="btn btn-copy" onclick="previewSale()">&#128065; Vista previa</button>
-      <button class="btn btn-primary" onclick="confirmSale()">&#10003; Registrar venta</button>
+      <button class="btn btn-copy" onclick="previewSale()"><i class="ti ti-eye" style="vertical-align:-2px;"></i> Vista previa</button>
+      <button class="btn btn-primary" onclick="confirmSale()"><i class="ti ti-check" style="vertical-align:-2px;"></i> Registrar venta</button>
     </div>
   </div>
 </div>
@@ -1999,8 +2000,8 @@ function renderPlatButtons(){
       '</div>'+
       '<div class="pb-actions">'+
         '<button class="btn btn-sm btn-primary" style="justify-content:center" onclick="event.stopPropagation();addAccToPlatform(\''+p.id+'\')" >+ Cuenta</button>'+
-        '<button class="btn btn-sm" style="border-color:var(--border-glow);color:var(--text-dim)" onclick="event.stopPropagation();openPlatformModal(\''+p.id+'\')" title="Editar">&#9998;</button>'+
-        '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlatform(\''+p.id+'\')" title="Eliminar">&#10005;</button>'+
+        '<button class="btn btn-sm" style="border-color:var(--border-glow);color:var(--text-dim)" onclick="event.stopPropagation();openPlatformModal(\''+p.id+'\')" title="Editar"><i class="ti ti-edit" style="vertical-align:-2px;"></i></button>'+
+        '<button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deletePlatform(\''+p.id+'\')" title="Eliminar"><i class="ti ti-x" style="vertical-align:-2px;"></i></button>'+
         '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);min-width:28px;justify-content:center;" onclick="event.stopPropagation();movePlatform(\''+p.id+'\',-1)" title="Mover arriba">&#9650;</button>'+
         '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);min-width:28px;justify-content:center;" onclick="event.stopPropagation();movePlatform(\''+p.id+'\',1)" title="Mover abajo">&#9660;</button>'+
       '</div>'+
@@ -2013,7 +2014,7 @@ function buildTplSection(p){
   return '<div class="tpl-box">' +
     '<div class="tpl-box-hd">' +
       '<span style="font-family:Poppins,sans-serif;font-size:12px;font-weight:800;color:var(--neon3);text-transform:uppercase;letter-spacing:1px">Plantilla de mensaje</span>' +
-      '<button class="btn btn-sm btn-copy" onclick="toggleTplPanel(\'' + p.id + '\')" id="tpl-btn-' + p.id + '" style="margin-left:auto;font-size:11px">&#128221; Ver / Editar nota</button>' +
+      '<button class="btn btn-sm btn-copy" onclick="toggleTplPanel(\'' + p.id + '\')" id="tpl-btn-' + p.id + '" style="margin-left:auto;font-size:11px"><i class="ti ti-note" style="vertical-align:-2px;"></i> Ver / Editar nota</button>' +
     '</div>' +
     '<div id="tpl-panel-' + p.id + '" style="display:none;margin-top:10px;">' +
       '<div class="tpl-editor">' +
@@ -2143,7 +2144,7 @@ function showPlatDetail(platId){
   var logoH=p.logo?'<img src="'+p.logo+'" style="height:36px;max-width:130px;object-fit:contain" onerror="this.style.display=\'none\'" alt="">':'<span style="font-family:Poppins,sans-serif;font-size:22px;font-weight:900;color:'+p.color+'">'+escH(p.name)+'</span>';
   document.getElementById('plat-detail-hd').innerHTML=
     '<div style="display:flex;align-items:center;gap:14px;flex-wrap:wrap;padding-bottom:14px;border-bottom:1px solid var(--border);margin-bottom:16px;">'+
-    '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim)" onclick="backToPlats()" title="Volver">&#8592; Volver</button>'+
+    '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim)" onclick="backToPlats()" title="Volver"><i class="ti ti-arrow-left" style="vertical-align:-2px;"></i> Volver</button>'+
     logoH+
     '<div><div style="font-family:Poppins,sans-serif;font-size:18px;font-weight:800;color:var(--text-bright)">'+escH(p.name)+'</div>'+
     '<div style="font-size:11px;color:var(--neon3);font-family:Share Tech Mono,monospace;letter-spacing:1px">'+escH(p.category)+'</div></div>'+
@@ -2155,7 +2156,7 @@ function showPlatDetail(platId){
     '</div>'+
     '<div style="display:flex;gap:8px;">'+
       '<button class="btn btn-primary btn-sm" onclick="openAccountModal();setTimeout(function(){document.getElementById(\'a-platform\').value=\''+platId+'\';},50)">+ Cuenta</button>'+
-      '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim)" onclick="openPlatformModal(\''+platId+'\')" title="Editar">&#9998; Editar</button>'+
+      '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim)" onclick="openPlatformModal(\''+platId+'\')" title="Editar"><i class="ti ti-edit" style="vertical-align:-2px;"></i> Editar</button>'+
     '</div>'+
     '</div>';
   if(!accs.length){
@@ -2230,13 +2231,13 @@ function buildAccCard(a,p){
           var dl=getDaysLeft(a.expiry);
           var warn=getAccStatus(a)==='expired'||dl<=3;
           var dlLbl=dl<0?'vencido':dl===0?'hoy':dl===1?'1d':dl+'d';
-          return '<span class="acc-expiry'+(warn?' acc-expiry-warn':'')+'">&#128197; '+escH(a.expiry)+'</span>'+
+          return '<span class="acc-expiry'+(warn?' acc-expiry-warn':'')+'"><i class="ti ti-calendar" style="vertical-align:-2px;"></i> '+escH(a.expiry)+'</span>'+
                  '<span style="font-family:Share Tech Mono,monospace;font-size:11px;padding:2px 7px;border-radius:2px;border:1px solid;margin-left:4px;'+(warn?'color:var(--danger);border-color:var(--danger);background:var(--danger-dim);':'color:var(--neon2);border-color:var(--neon2);background:rgba(0,200,255,0.06);')+'">'+dlLbl+'</span>';
         })():'')+
         '<div class="ml-auto" style="display:flex;gap:6px;">'+
           '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);" onclick="changeAccVencimiento(\''+a.id+'\')" title="Cambiar fecha de vencimiento de la cuenta"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>'+
-          '<button class="btn btn-sm btn-primary" onclick="openAccountModal(\''+a.id+'\')" title="Editar">&#9998;</button>'+
-          '<button class="btn btn-sm btn-danger" onclick="deleteAccount(\''+a.id+'\')" title="Borrar">&#10005;</button>'+
+          '<button class="btn btn-sm btn-primary" onclick="openAccountModal(\''+a.id+'\')" title="Editar"><i class="ti ti-edit" style="vertical-align:-2px;"></i></button>'+
+          '<button class="btn btn-sm btn-danger" onclick="deleteAccount(\''+a.id+'\')" title="Borrar"><i class="ti ti-x" style="vertical-align:-2px;"></i></button>'+
           '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);padding:3px 7px;" onclick="moveAccount(\''+a.id+'\',\''+p.id+'\', -1)" title="Mover arriba">&#9650;</button>'+
           '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);padding:3px 7px;" onclick="moveAccount(\''+a.id+'\',\''+p.id+'\', 1)" title="Mover abajo">&#9660;</button>'+
         '</div>'+
@@ -2272,14 +2273,14 @@ function buildAccCard(a,p){
           var dl=getDaysLeft(a.expiry);
           var warn=getAccStatus(a)==='expired'||dl<=3;
           var dlLbl=dl<0?'vencido':dl===0?'hoy':dl===1?'1d':dl+'d';
-          return '<span class="acc-expiry'+(warn?' acc-expiry-warn':'')+'">&#128197; '+escH(a.expiry)+'</span>'+
+          return '<span class="acc-expiry'+(warn?' acc-expiry-warn':'')+'"><i class="ti ti-calendar" style="vertical-align:-2px;"></i> '+escH(a.expiry)+'</span>'+
                  '<span style="font-family:Share Tech Mono,monospace;font-size:11px;padding:2px 7px;border-radius:2px;border:1px solid;margin-left:4px;'+(warn?'color:var(--danger);border-color:var(--danger);background:var(--danger-dim);':'color:var(--neon2);border-color:var(--neon2);background:rgba(0,200,255,0.06);')+'">'+dlLbl+'</span>';
         })():'')+
         '<span style="font-family:Share Tech Mono,monospace;font-size:11px;color:var(--text-dim);margin-left:8px">'+(a.profiles?a.profiles.length:0)+(a.type==='email'?' correos':a.type==='emailsingle'?' correo':' perfiles')+'</span>'+
         '<div class="ml-auto" style="display:flex;gap:6px;">'+
           '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);" onclick="changeAccVencimiento(\''+a.id+'\')" title="Cambiar fecha de vencimiento"><svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="4" width="18" height="18" rx="2"/><line x1="16" y1="2" x2="16" y2="6"/><line x1="8" y1="2" x2="8" y2="6"/><line x1="3" y1="10" x2="21" y2="10"/></svg></button>'+
-          '<button class="btn btn-sm btn-primary" onclick="openAccountModal(\''+a.id+'\')" title="Editar">&#9998;</button>'+
-          '<button class="btn btn-sm btn-danger" onclick="deleteAccount(\''+a.id+'\')" title="Borrar">&#10005;</button>'+
+          '<button class="btn btn-sm btn-primary" onclick="openAccountModal(\''+a.id+'\')" title="Editar"><i class="ti ti-edit" style="vertical-align:-2px;"></i></button>'+
+          '<button class="btn btn-sm btn-danger" onclick="deleteAccount(\''+a.id+'\')" title="Borrar"><i class="ti ti-x" style="vertical-align:-2px;"></i></button>'+
           '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);padding:3px 7px;" onclick="moveAccount(\''+a.id+'\',\''+p.id+'\', -1)" title="Mover arriba">&#9650;</button>'+
           '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim);padding:3px 7px;" onclick="moveAccount(\''+a.id+'\',\''+p.id+'\', 1)" title="Mover abajo">&#9660;</button>'+
         '</div>'+
@@ -2612,7 +2613,7 @@ function renderPersonTable(type){
       '<td style="font-size:13px;color:var(--text-dim)">'+escH(p.notes||'-')+'</td>'+
       '<td><span class="badge">'+cnt+'</span></td>'+
       '<td><div style="display:flex;gap:6px;">'+
-        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);" onclick="showPersonHistory(\''+p.id+'\',\''+type+'\')" title="Ver historial">&#128203; Ver</button>'+
+        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);" onclick="showPersonHistory(\''+p.id+'\',\''+type+'\')" title="Ver historial"><i class="ti ti-clipboard-list" style="vertical-align:-2px;"></i> Ver</button>'+
         '<button class="btn btn-sm btn-primary" onclick="openPersonModal(\''+type+'\',\''+p.id+'\')">Editar</button>'+
         '<button class="btn btn-sm btn-danger" onclick="deletePerson(\''+type+'\',\''+p.id+'\')">Borrar</button>'+
       '</div></td>'+
@@ -2743,8 +2744,8 @@ function renderAlerts(tab){
       '<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 14px;border-bottom:1px solid var(--border);">'+
         '<span style="font-weight:800;font-size:15px;color:var(--text-bright);">'+escH(g.name)+'</span>'+
         '<div style="display:flex;gap:6px;">'+
-          (waUrl?'<button class="btn btn-sm btn-wa" onclick="fireAlertMsg('+gi+',0)" title="Avisar por WhatsApp">&#128232; WhatsApp</button>':'')+
-          (tgUrl?'<button class="btn btn-sm btn-tg" onclick="fireAlertMsg('+gi+',1)" title="Avisar por Telegram">&#9992; Telegram</button>':'')+
+          (waUrl?'<button class="btn btn-sm btn-wa" onclick="fireAlertMsg('+gi+',0)" title="Avisar por WhatsApp"><i class="ti ti-brand-whatsapp" style="vertical-align:-2px;"></i> WhatsApp</button>':'')+
+          (tgUrl?'<button class="btn btn-sm btn-tg" onclick="fireAlertMsg('+gi+',1)" title="Avisar por Telegram"><i class="ti ti-brand-telegram" style="vertical-align:-2px;"></i> Telegram</button>':'')+
         '</div>'+
       '</div>'+
       g.items.map(function(item){
@@ -2764,7 +2765,7 @@ function renderAlerts(tab){
           '<div style="display:flex;align-items:center;gap:8px;">'+
           '<span class="status '+dl.cls+'"><span class="dot"></span>'+dl.lbl+'</span>'+
           '<button class="btn btn-sm" style="border-color:var(--success);color:var(--success);background:rgba(0,255,136,0.06);padding:3px 10px;font-size:11px;" '+
-            'onclick="quickRenew(\''+escH(item.accId)+'\','+(item.profIdx!==null&&item.profIdx!==undefined?String(item.profIdx):'null')+')" title="Renovar fecha">&#8635; Renovar</button>'+
+            'onclick="quickRenew(\''+escH(item.accId)+'\','+(item.profIdx!==null&&item.profIdx!==undefined?String(item.profIdx):'null')+')" title="Renovar fecha"><i class="ti ti-rotate" style="vertical-align:-2px;"></i> Renovar</button>'+
           '</div>'+
         '</div>';
       }).join('')+
@@ -3085,7 +3086,7 @@ function renderReloads(tab){
         '<div style="font-size:12px;color:var(--text-dim);font-family:Share Tech Mono,monospace;margin-top:3px;">Vence cuenta: '+escH(item.expiry)+'</div>'+
       '</div>'+
       '<div style="display:flex;align-items:center;gap:10px;flex-shrink:0;margin-left:auto;">'+
-        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="quickRenew(\''+item.accId+'\',\'expiry\')" title="Registrar recarga y actualizar fecha">&#8635; Recargada</button>'+
+        '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);font-size:11px;padding:4px 10px;white-space:nowrap;" onclick="quickRenew(\''+item.accId+'\',\'expiry\')" title="Registrar recarga y actualizar fecha"><i class="ti ti-rotate" style="vertical-align:-2px;"></i> Recargada</button>'+
         '<span class="status '+dl.cls+'"><span class="dot"></span>'+dl.lbl+'</span>'+
       '</div>'+
     '</div>';
@@ -3334,7 +3335,7 @@ function renderRates(){
       '</tbody></table>'+
     '</div>';
   });
-  html+='<button class="btn btn-primary btn-sm" onclick="saveRates()">&#10003; Guardar tarifas</button>';
+  html+='<button class="btn btn-primary btn-sm" onclick="saveRates()"><i class="ti ti-check" style="vertical-align:-2px;"></i> Guardar tarifas</button>';
   ratesEl.innerHTML=html;
 }
 var financeTab='costs';
@@ -3401,10 +3402,10 @@ function renderFinance(){
   var margin=totalIncome>0?(balance/totalIncome*100):0;
   var statsEl=document.getElementById('finance-stats');
   statsEl.innerHTML=[
-    {icon:'&#128201;',lbl:'Costo mensual total',val:'$ '+totalCost.toFixed(2),color:'var(--danger)'},
-    {icon:'&#128200;',lbl:'Ingreso estimado',val:'$ '+totalIncome.toFixed(2),color:'var(--success)'},
-    {icon:'&#9878;&#65039;',lbl:'Balance estimado',val:'$ '+balance.toFixed(2),color:balance>=0?'var(--neon)':'var(--danger)'},
-    {icon:'&#128290;',lbl:'Slots asignados',val:incomeRows.length,color:'var(--neon2)'},
+    {icon:'<i class="ti ti-trending-down" style="vertical-align:-2px;"></i>',lbl:'Costo mensual total',val:'$ '+totalCost.toFixed(2),color:'var(--danger)'},
+    {icon:'<i class="ti ti-trending-up" style="vertical-align:-2px;"></i>',lbl:'Ingreso estimado',val:'$ '+totalIncome.toFixed(2),color:'var(--success)'},
+    {icon:'<i class="ti ti-scale" style="vertical-align:-2px;"></i>',lbl:'Balance estimado',val:'$ '+balance.toFixed(2),color:balance>=0?'var(--neon)':'var(--danger)'},
+    {icon:'<i class="ti ti-hash" style="vertical-align:-2px;"></i>',lbl:'Slots asignados',val:incomeRows.length,color:'var(--neon2)'},
   ].map(function(s){
     return '<div style="background:var(--panel2);border:1px solid var(--border);border-left:3px solid '+s.color+';border-radius:6px;padding:16px 18px;">'+
       '<div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">'+
@@ -3570,7 +3571,7 @@ function runGlobalSearch(){
         '<div><div style="font-size:11px;color:var(--text-dim);font-weight:700">Asignado</div><div style="font-size:13px;font-weight:800;color:var(--text-bright)">'+escH(r.assigned)+'</div></div>'+
         '<div><div style="font-size:11px;color:var(--text-dim);font-weight:700">Vence cliente</div><div style="font-family:Share Tech Mono,monospace;font-size:13px;color:var(--neon)">'+escH(r.expiry||'-')+'</div>'+stBadge+'</div>'+
         '<div style="display:flex;gap:6px;align-items:center;">'+
-          '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);" onclick="goToPlatformFilter(\''+escH(r.platId||'')+'\',\''+escH(rEmail)+'\');clearGlobalSearch()" title="Ir a la cuenta">&#8599; IR</button>'+
+          '<button class="btn btn-sm" style="border-color:var(--neon2);color:var(--neon2);background:rgba(0,200,255,0.08);" onclick="goToPlatformFilter(\''+escH(r.platId||'')+'\',\''+escH(rEmail)+'\');clearGlobalSearch()" title="Ir a la cuenta"><i class="ti ti-arrow-up-right" style="vertical-align:-2px;"></i> IR</button>'+
           '<button class="btn btn-sm btn-copy" data-acc="'+r.accId+'" data-prof="'+r.profIdx+'" onclick="gsAction(this,0)">Copiar</button>'+
           (phone?'<button class="btn btn-sm btn-wa" data-acc="'+r.accId+'" data-prof="'+r.profIdx+'" data-phone="'+escH(phone)+'" onclick="gsAction(this,1)">WA</button>':'')+
           (matchPer&&matchPer.telegram?'<button class="btn btn-sm btn-tg" data-acc="'+r.accId+'" data-prof="'+r.profIdx+'" data-tg="'+escH(matchPer.telegram)+'" onclick="gsAction(this,2)">TG</button>':'')+
@@ -3842,8 +3843,8 @@ function renderTrash(){
           var lines='';
           // Correo y clave para tipo email
           if(isEmail){
-            if(item.snapshot.name) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);">&#9993; Correo cliente: '+escH(item.snapshot.name)+'</div>';
-            if(item.snapshot.pin)  lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);">&#128273; Clave: '+escH(item.snapshot.pin)+'</div>';
+            if(item.snapshot.name) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);"><i class="ti ti-mail" style="vertical-align:-2px;"></i> Correo cliente: '+escH(item.snapshot.name)+'</div>';
+            if(item.snapshot.pin)  lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--neon3);"><i class="ti ti-key" style="vertical-align:-2px;"></i> Clave: '+escH(item.snapshot.pin)+'</div>';
           }
           // PIN para tipo perfil
           if(!isEmail&&item.snapshot.pin) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">PIN: '+escH(item.snapshot.pin)+'</div>';
@@ -3855,14 +3856,14 @@ function renderTrash(){
           if(per) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--text-dim);">Asignado: '+escH(per.name)+'</div>';
           // Nombre del cliente (cnotes para perfil, resellerClient para email)
           var clientName=item.snapshot.cnotes||item.snapshot.resellerClient||'';
-          if(clientName) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--warn);">&#128100; Cliente: '+escH(clientName)+'</div>';
+          if(clientName) lines+='<div style="font-size:12px;font-family:Share Tech Mono,monospace;color:var(--warn);"><i class="ti ti-user" style="vertical-align:-2px;"></i> Cliente: '+escH(clientName)+'</div>';
           return lines;
         })()+
         '<div style="font-size:11px;color:var(--text-dim);margin-top:4px;">Limpiado el '+escH(item.deletedAt)+'</div>'+
       '</div>'+
       '<div style="display:flex;gap:6px;">'+
-        '<button class="btn btn-sm btn-primary" onclick="restoreProfile(\''+escH(item.id)+'\')" title="Restaurar perfil">&#8635; Restaurar</button>'+
-        '<button class="btn btn-sm btn-danger" onclick="deleteTrashItem(\''+escH(item.id)+'\')" title="Borrar registro">&#10005;</button>'+
+        '<button class="btn btn-sm btn-primary" onclick="restoreProfile(\''+escH(item.id)+'\')" title="Restaurar perfil"><i class="ti ti-rotate" style="vertical-align:-2px;"></i> Restaurar</button>'+
+        '<button class="btn btn-sm btn-danger" onclick="deleteTrashItem(\''+escH(item.id)+'\')" title="Borrar registro"><i class="ti ti-x" style="vertical-align:-2px;"></i></button>'+
       '</div>'+
     '</div>';
   }).join('');
@@ -4586,13 +4587,13 @@ function renderPassReminders(){
           '<span style="color:var(--text-dim);">Correo: </span><span style="color:var(--neon);">'+escH(item.email)+'</span>'+
         '</div>'+
         '<div style="font-family:Share Tech Mono,monospace;font-size:14px;font-weight:700;color:var(--warn);margin-top:4px;">'+
-          '&#128273; Nueva clave: '+escH(item.pass)+
+          '<i class="ti ti-key" style="vertical-align:-2px;"></i> Nueva clave: '+escH(item.pass)+
         '</div>'+
         '<div style="margin-top:8px;font-size:12px;color:var(--text-dim);">Enviar a:</div>'+
         profs+
         '<div style="font-size:11px;color:var(--text-dim);margin-top:6px;">Generado el '+escH(item.createdAt)+'</div>'+
       '</div>'+
-      '<button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="dismissPassReminder(\''+escH(item.id)+'\')">&#10003; Aviso entregado</button>'+
+      '<button class="btn btn-sm btn-primary" style="white-space:nowrap;" onclick="dismissPassReminder(\''+escH(item.id)+'\')"><i class="ti ti-check" style="vertical-align:-2px;"></i> Aviso entregado</button>'+
     '</div>';
   }).join('');
 }
