@@ -663,6 +663,17 @@ select option{background:var(--panel2);}
                 <button class="btn" style="border-color:var(--text-dim);color:var(--text-dim);" onclick="driveSignOut()">Desconectar</button>
               </div>
             </div>
+            <div id="drive-progress" style="display:none;margin-top:14px;">
+              <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--text-dim);margin-bottom:6px;">
+                <span id="drive-prog-label">—</span><span id="drive-prog-pct">0%</span>
+              </div>
+              <div style="height:10px;background:var(--bg,#0a0a14);border:1px solid var(--border);border-radius:6px;overflow:hidden;">
+                <div id="drive-prog-bar" style="height:100%;width:0%;background:linear-gradient(90deg,var(--neon2),var(--neon));transition:width .15s linear;box-shadow:0 0 8px var(--neon2);"></div>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-family:'Share Tech Mono',monospace;font-size:11px;color:var(--neon2);margin-top:6px;">
+                <span id="drive-prog-speed">0 KB/s</span><span id="drive-prog-size">0 / 0</span>
+              </div>
+            </div>
             <div id="drive-status" style="margin-top:12px;font-size:12px;font-family:'Share Tech Mono',monospace;color:var(--neon2);min-height:18px;"></div>
           </div>
           <div style="display:none;">
@@ -1191,9 +1202,58 @@ function driveSignOut(){
   driveSetStatus('Desconectado');
 }
 
+
+function driveFmtBytes(n){
+  if(n<1024) return n+' B';
+  if(n<1048576) return (n/1024).toFixed(1)+' KB';
+  return (n/1048576).toFixed(2)+' MB';
+}
+function driveProgShow(label){
+  var w=document.getElementById('drive-progress'); if(!w) return;
+  w.style.display='';
+  document.getElementById('drive-prog-label').textContent=label;
+  driveProgUpdate(0,0,0);
+}
+function driveProgUpdate(loaded,total,speed){
+  var pct = total>0 ? Math.min(100,Math.round(loaded/total*100)) : 0;
+  var bar=document.getElementById('drive-prog-bar'); if(!bar) return;
+  bar.style.width=pct+'%';
+  document.getElementById('drive-prog-pct').textContent=(total>0?pct:'…')+'%';
+  document.getElementById('drive-prog-speed').textContent=driveFmtBytes(Math.round(speed))+'/s';
+  document.getElementById('drive-prog-size').textContent=driveFmtBytes(loaded)+' / '+(total>0?driveFmtBytes(total):'?');
+}
+function driveProgHide(delay){
+  setTimeout(function(){ var w=document.getElementById('drive-progress'); if(w) w.style.display='none'; }, delay||2500);
+}
+// XHR con progreso y velocidad. dir: 'up' | 'down'
+function driveXhr(method,url,headers,body,dir,fallbackTotal){
+  return new Promise(function(resolve,reject){
+    var xhr=new XMLHttpRequest();
+    var t0=performance.now();
+    function report(loaded,total){
+      var el=(performance.now()-t0)/1000;
+      driveProgUpdate(loaded,total,el>0?loaded/el:0);
+    }
+    xhr.open(method,url);
+    Object.keys(headers||{}).forEach(function(k){ xhr.setRequestHeader(k,headers[k]); });
+    var tgt = dir==='up' ? xhr.upload : xhr;
+    tgt.onprogress=function(e){ report(e.loaded, e.lengthComputable?e.total:(fallbackTotal||0)); };
+    xhr.onload=function(){
+      if(xhr.status>=200&&xhr.status<300){
+        var sz = dir==='up' ? (fallbackTotal||0) : (xhr.responseText||'').length;
+        report(sz||1, sz||1);
+        resolve(xhr.responseText);
+      } else reject(new Error('HTTP '+xhr.status));
+    };
+    xhr.onerror=function(){ reject(new Error('Error de red')); };
+    xhr.onabort=function(){ reject(new Error('Cancelado')); };
+    xhr.send(body||null);
+  });
+}
+
 async function driveFindFile(){
   var resp = await fetch(
-    'https://www.googleapis.com/drive/v3/files?q=name%3D%22'+DRIVE_FILE_NAME+'%22+and+trashed%3Dfalse&fields=files(id,name,modifiedTime)',
+    'https://www.googleapis.com/drive/v3/files?q=name%3D%22'+DRIVE_FILE_NAME+'%22+and+trashed%3Dfalse&fields=files(id,name,modifiedTime,size)',
     {headers:{Authorization:'Bearer '+_driveToken}}
   );
   var data = await resp.json();
@@ -1222,10 +1282,15 @@ async function driveUpload(){
       url = 'https://www.googleapis.com/upload/drive/v3/files/'+metaData.id+'?uploadType=media';
       method = 'PATCH';
     }
-    await fetch(url,{method:method,headers:{Authorization:'Bearer '+_driveToken,'Content-Type':'application/json'},body:content});
+    var upSize = blob.size;
+    driveProgShow('SUBIENDO A DRIVE');
+    driveSetStatus('Subiendo...');
+    await driveXhr(method,url,{Authorization:'Bearer '+_driveToken,'Content-Type':'application/json'},blob,'up',upSize);
+    driveProgHide();
     driveSetStatus('✓ Subido a Drive correctamente — '+todayStrVE()+' '+new Date().toLocaleTimeString(),'var(--success)');
     toast('Datos subidos a Drive','success');
   } catch(e){
+    driveProgHide(4000);
     driveSetStatus('Error al subir: '+e.message,'var(--danger)');
   }
 }
@@ -1241,9 +1306,11 @@ async function driveDownload(){
     var localDate = new Date(); // aproximado
     var driveStr = driveDate.toLocaleString();
     // Descargar contenido
-    var resp = await fetch('https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',
-      {headers:{Authorization:'Bearer '+_driveToken}});
-    var text = await resp.text();
+    driveProgShow('BAJANDO DE DRIVE');
+    driveSetStatus('Descargando...');
+    var text = await driveXhr('GET','https://www.googleapis.com/drive/v3/files/'+file.id+'?alt=media',
+      {Authorization:'Bearer '+_driveToken},null,'down',parseInt(file.size||0,10));
+    driveProgHide();
     var data = JSON.parse(text);
     if(!data.accounts||!data.platforms){ driveSetStatus('Archivo en Drive no válido','var(--danger)'); return; }
     // Detectar conflicto
@@ -1263,6 +1330,7 @@ async function driveDownload(){
     driveSetStatus('✓ Datos de Drive cargados correctamente','var(--success)');
     toast('Datos sincronizados desde Drive','success');
   } catch(e){
+    driveProgHide(4000);
     driveSetStatus('Error al descargar: '+e.message,'var(--danger)');
   }
 }
@@ -4442,7 +4510,7 @@ function downloadPersonAccounts(){
   DB.accounts.forEach(function(a){
     var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?'};
     if(a.type==='complete'&&a.assigneeId===ctx.id){
-      rows.push({plataforma:p.name,tipo:'Completa',usuario:a.email||'',contrasena:a.password||'',pin:'—',vence:a.cutDate||a.expiry||''});
+      rows.push({plataforma:p.name,tipo:'Completa',cliente:a.resellerClient||a.cnotes||'',usuario:a.email||'',contrasena:a.password||'',pin:'—',vence:a.cutDate||a.expiry||''});
     } else if(a.profiles){
       a.profiles.forEach(function(pr,i){
         if(pr.assigneeId!==ctx.id) return;
@@ -4450,6 +4518,7 @@ function downloadPersonAccounts(){
         rows.push({
           plataforma:p.name,
           tipo:typeLbl,
+          cliente:pr.cnotes||pr.resellerClient||'',
           usuario:a.type==='email'?(a.email||''):(pr.name||('Perfil '+(i+1))),
           contrasena:a.type==='email'?(pr.pin||''):(a.password||''),
           pin:a.type==='email'?'—':(pr.pin||''),
@@ -4463,13 +4532,13 @@ function downloadPersonAccounts(){
   rows.sort(function(a,b){ return a.plataforma.localeCompare(b.plataforma); });
 
   var HDRS=[
-    ['Cuentas activas de '+ctx.name,'','','','',''],
-    ['Plataforma','Tipo','Usuario / Correo','Contraseña','PIN','Vence']
+    ['Cuentas activas de '+ctx.name,'','','','','',''],
+    ['Plataforma','Tipo','Cliente','Usuario / Correo','Contraseña','PIN','Vence']
   ];
   var data=HDRS.map(function(r){return r.slice();});
-  rows.forEach(function(r){ data.push([r.plataforma,r.tipo,r.usuario,r.contrasena,r.pin,r.vence]); });
+  rows.forEach(function(r){ data.push([r.plataforma,r.tipo,r.cliente,r.usuario,r.contrasena,r.pin,r.vence]); });
   var ws=XLSX.utils.aoa_to_sheet(data);
-  ws['!cols']=[{wch:24},{wch:12},{wch:26},{wch:20},{wch:12},{wch:14}];
+  ws['!cols']=[{wch:24},{wch:12},{wch:22},{wch:26},{wch:20},{wch:12},{wch:14}];
   var wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb, ws, 'Cuentas');
 
