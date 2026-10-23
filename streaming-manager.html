@@ -2794,7 +2794,7 @@ function getNoDateItems(){
       return list.find(function(x){return x.id===id;})||null;
     }
     if(a.type==='complete'){
-      if(a.assigneeId && !(a.cutDate||a.expiry)){
+      if(a.assigneeId && !a.cutDate){
         var per=person(a.assigneeId,a.assignType);
         items.push({label:a.email,platName:pn,assignedTo:per?per.name:'Asignado (persona no encontrada)',personId:a.assigneeId,
           accType:'complete',accId:a.id,profIdx:null,platId:a.platformId,phone:per?per.phone||'':'',telegram:per?per.telegram||'':''});
