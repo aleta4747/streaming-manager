@@ -696,6 +696,7 @@ select option{background:var(--panel2);}
         <div id="finance-chart" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:16px 18px;margin-bottom:24px;"></div>
         <div class="tabs" id="finance-tabs">
           <div class="tab active" onclick="switchFinanceTab('costs')"><i class="ti ti-download" style="vertical-align:-2px;"></i> Costos</div>
+          <div class="tab" onclick="switchFinanceTab('costtypes')"><i class="ti ti-receipt" style="vertical-align:-2px;"></i> Costos de cuentas</div>
           <div class="tab" onclick="switchFinanceTab('rates')"><i class="ti ti-cash" style="vertical-align:-2px;"></i> Tarifas</div>
           <div class="tab" onclick="switchFinanceTab('income')"><i class="ti ti-package" style="vertical-align:-2px;"></i> Ingresos</div>
         </div>
@@ -705,6 +706,11 @@ select option{background:var(--panel2);}
             <input id="finance-costs-search" type="text" placeholder="Buscar cuenta..." oninput="renderFinance()" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:200px;">
           </div>
           <div id="finance-costs"></div>
+        </div>
+        <div id="finance-tab-costtypes" class="finance-tabpanel" style="display:none;">
+          <div class="sec-hd" style="margin:14px 0 10px;"><div class="sec-title" style="font-size:13px;"><i class="ti ti-receipt" style="vertical-align:-2px;"></i> Costos de cuentas por tipo de factura</div></div>
+          <div style="font-size:12px;color:var(--text-dim);margin-bottom:12px;line-height:1.6;">Crea tipos de factura por plataforma (ej: Tarjeta) con su valor. Al editar una cuenta eliges el tipo, y si cambias el valor aquí, el costo se actualiza en todas las cuentas que lo usan.</div>
+          <div id="finance-costtypes"></div>
         </div>
         <div id="finance-tab-rates" class="finance-tabpanel" style="display:none;">
           <div class="sec-hd" style="margin:14px 0 10px;"><div class="sec-title" style="font-size:13px;"><i class="ti ti-cash" style="vertical-align:-2px;"></i> Tarifas de venta</div></div>
@@ -839,7 +845,7 @@ select option{background:var(--panel2);}
       <input type="hidden" id="a-platid">
       <div class="fsec">// datos de la cuenta</div>
       <div class="fr">
-        <div class="fg"><label>Plataforma</label><select id="a-platform"></select></div>
+        <div class="fg"><label>Plataforma</label><select id="a-platform" onchange="refreshCostTypeSelect(document.getElementById('a-costtype').value)"></select></div>
         <div class="fg"><label>Tipo de renta</label><select id="a-type" onchange="toggleAccType()"><option value="complete">Cuenta completa</option><option value="profile">Por perfil</option><option value="email">Por correo</option><option value="emailsingle">Correo individual</option></select></div>
       </div>
       <div class="fr" id="row-email-pass">
@@ -899,7 +905,10 @@ select option{background:var(--panel2);}
       </div>
       <div class="fr">
         <div class="fg"><label>¿Google Play?</label><select id="a-gplay"><option value="">Sin especificar</option><option value="yes">Sí</option><option value="no">No</option></select></div>
-        <div class="fg"><label>Costo mensual (USD $)</label><input type="number" id="a-cost" placeholder="0.00" min="0" step="0.01" style="font-family:'Share Tech Mono',monospace;"></div>
+        <div class="fg"><label>Costo mensual (USD $)</label>
+          <select id="a-costtype" onchange="onCostTypeChange()"><option value="">Manual (escribir costo)</option></select>
+          <input type="number" id="a-cost" placeholder="0.00" min="0" step="0.01" style="font-family:'Share Tech Mono',monospace;margin-top:6px;">
+          <div id="a-cost-hint" style="display:none;margin-top:6px;font-size:11px;color:var(--neon2);font-family:'Share Tech Mono',monospace;"></div></div>
       </div>
     </div>
     <div class="modal-ft">
@@ -1591,6 +1600,7 @@ function openAccountModal(id){
     document.getElementById('a-provider').value=a.provider||'';
     document.getElementById('a-gplay').value=a.googlePlay||'';
     document.getElementById('a-cost').value=a.cost||'';
+    refreshCostTypeSelect(a.costTypeId);
     if(a.type==='complete'){
       document.getElementById('a-atype').value=a.assignType||'';
       document.getElementById('a-resclient').value=a.resellerClient||'';
@@ -1602,6 +1612,7 @@ function openAccountModal(id){
   }else{
     ['a-email','a-pass','a-notes','a-accpin','a-resclient','a-billing','a-provider','a-cost'].forEach(function(x){document.getElementById(x).value='';})
     document.getElementById('a-gplay').value='';;
+    refreshCostTypeSelect('');
     document.getElementById('a-type').value='complete';
     var _rEP=document.getElementById('row-email-pass');
     var _rEN=document.getElementById('row-expiry-notes');
@@ -1831,6 +1842,11 @@ function saveAccount(){
     provider:document.getElementById('a-provider').value.trim(),
     googlePlay:document.getElementById('a-gplay').value,
     cost:document.getElementById('a-cost').value};
+  (function(){
+    var ctId=(document.getElementById('a-costtype')||{value:''}).value;
+    var ct=ctId?getCostTypes().find(function(x){return x.id===ctId;}):null;
+    if(ct){ data.costTypeId=ct.id; data.cost=String(parseFloat(ct.value)||0); } else { data.costTypeId=''; }
+  })();
   if(type==='complete'){
     var _aval=document.getElementById('a-assignee').value;
     var _atype=document.getElementById('a-atype').value;
@@ -2152,7 +2168,7 @@ function previewTpl(platId){
 }
 function addAccToPlatform(platId){
   openAccountModal();
-  setTimeout(function(){ document.getElementById('a-platform').value=platId; },50);
+  setTimeout(function(){ document.getElementById('a-platform').value=platId; refreshCostTypeSelect(''); },50);
 }
 function renderDashAvailable(){
   var sel = document.getElementById('filter-dash-avail-plat');
@@ -2225,7 +2241,7 @@ function showPlatDetail(platId){
       '<div style="text-align:center"><div style="font-family:Share Tech Mono,monospace;font-size:22px;color:var(--danger)">'+expC+'</div><div style="font-size:9px;color:var(--text-dim);font-weight:800">VENCIDOS</div></div>'+
     '</div>'+
     '<div style="display:flex;gap:8px;">'+
-      '<button class="btn btn-primary btn-sm" onclick="openAccountModal();setTimeout(function(){document.getElementById(\'a-platform\').value=\''+platId+'\';},50)">+ Cuenta</button>'+
+      '<button class="btn btn-primary btn-sm" onclick="openAccountModal();setTimeout(function(){document.getElementById(\'a-platform\').value=\''+platId+'\';refreshCostTypeSelect(\'\');},50)">+ Cuenta</button>'+
       '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim)" onclick="openPlatformModal(\''+platId+'\')" title="Editar"><i class="ti ti-edit" style="vertical-align:-2px;"></i> Editar</button>'+
     '</div>'+
     '</div>';
@@ -2442,7 +2458,7 @@ function renderPlatforms(){
         '<div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px;">'+
           '<span style="font-weight:800;font-size:14px;color:var(--text-bright)">'+escH(p.name)+'</span>'+
           '<div style="display:flex;gap:6px;">'+
-            '<button class="btn btn-sm btn-primary" onclick="openAccountModal();setTimeout(function(){document.getElementById(\'a-platform\').value=\''+p.id+'\';},50)">+ Cuenta</button>'+
+            '<button class="btn btn-sm btn-primary" onclick="openAccountModal();setTimeout(function(){document.getElementById(\'a-platform\').value=\''+p.id+'\';refreshCostTypeSelect(\'\');},50)">+ Cuenta</button>'+
             '<button class="btn btn-sm" style="border-color:var(--border);color:var(--text-dim)" onclick="openPlatformModal(\''+p.id+'\')">Editar</button>'+
             '<button class="btn btn-sm btn-danger" onclick="deletePlatform(\''+p.id+'\')">Borrar</button>'+
           '</div>'+
@@ -3466,11 +3482,95 @@ function renderRates(){
   html+='<button class="btn btn-primary btn-sm" onclick="saveRates()"><i class="ti ti-check" style="vertical-align:-2px;"></i> Guardar tarifas</button>';
   ratesEl.innerHTML=html;
 }
+
+// ── Tipos de costo (factura) por plataforma ──────────────────────────────
+function getCostTypes(){ if(!DB.costTypes) DB.costTypes=[]; return DB.costTypes; }
+function getAccCost(a){
+  if(a.costTypeId){
+    var t=getCostTypes().find(function(x){return x.id===a.costTypeId;});
+    if(t) return parseFloat(t.value)||0;
+  }
+  return parseFloat(a.cost)||0;
+}
+function addCostType(platId){
+  var n=document.getElementById('ct-new-name-'+platId), v=document.getElementById('ct-new-val-'+platId);
+  var name=(n.value||'').trim(), val=parseFloat(v.value);
+  if(!name){ toast('Escribe el nombre del tipo de factura','warn'); return; }
+  if(isNaN(val)||val<0){ toast('Escribe un valor válido','warn'); return; }
+  if(getCostTypes().some(function(t){return t.platId===platId&&t.name.toLowerCase()===name.toLowerCase();})){ toast('Ya existe ese tipo en la plataforma','warn'); return; }
+  getCostTypes().push({id:uid(),platId:platId,name:name,value:val});
+  saveDB(); renderFinance(); toast('Tipo de factura creado','success');
+}
+function updateCostType(id){
+  var t=getCostTypes().find(function(x){return x.id===id;}); if(!t) return;
+  var name=(document.getElementById('ct-name-'+id).value||'').trim();
+  var val=parseFloat(document.getElementById('ct-val-'+id).value);
+  if(!name||isNaN(val)||val<0){ toast('Nombre o valor inválido','warn'); renderFinance(); return; }
+  var oldVal=parseFloat(t.value)||0;
+  t.name=name; t.value=val;
+  var n=0;
+  DB.accounts.forEach(function(a){ if(a.costTypeId===id){ a.cost=String(val); n++; } });
+  saveDB(); renderFinance();
+  toast(n&&val!==oldVal?('Valor actualizado en '+n+' cuenta(s)'):'Guardado','success');
+}
+function deleteCostType(id){
+  var t=getCostTypes().find(function(x){return x.id===id;}); if(!t) return;
+  var used=DB.accounts.filter(function(a){return a.costTypeId===id;});
+  if(!confirm('¿Eliminar el tipo "'+t.name+'"?'+(used.length?'\n\n'+used.length+' cuenta(s) lo usan; conservarán el costo actual ($ '+(parseFloat(t.value)||0).toFixed(2)+') como costo manual.':''))) return;
+  used.forEach(function(a){ a.cost=String(parseFloat(t.value)||0); delete a.costTypeId; });
+  DB.costTypes=getCostTypes().filter(function(x){return x.id!==id;});
+  saveDB(); renderFinance(); toast('Tipo eliminado','success');
+}
+function renderCostTypes(){
+  var el=document.getElementById('finance-costtypes'); if(!el) return;
+  if(!DB.platforms.length){ el.innerHTML='<div class="empty-state"><p>Primero crea una plataforma</p></div>'; return; }
+  var inpS='background:var(--bg);border:1px solid var(--border);color:var(--neon);padding:4px 8px;border-radius:3px;font-size:12px;font-family:Share Tech Mono,monospace;';
+  el.innerHTML=DB.platforms.map(function(p){
+    var types=getCostTypes().filter(function(t){return t.platId===p.id;});
+    var rows=types.map(function(t){
+      var n=DB.accounts.filter(function(a){return a.costTypeId===t.id;}).length;
+      return '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding:6px 0;border-top:1px solid var(--border);">'+
+        '<input id="ct-name-'+t.id+'" type="text" value="'+escH(t.name)+'" onchange="updateCostType(\''+t.id+'\')" style="'+inpS+'color:var(--text-bright);width:170px;">'+
+        '<span style="color:var(--text-dim);font-size:12px;">$</span>'+
+        '<input id="ct-val-'+t.id+'" type="number" min="0" step="0.01" value="'+(parseFloat(t.value)||0)+'" onchange="updateCostType(\''+t.id+'\')" style="'+inpS+'width:90px;">'+
+        '<span style="font-family:Share Tech Mono,monospace;font-size:11px;color:var(--text-dim);flex:1;">'+n+' cuenta(s)</span>'+
+        '<button class="btn btn-sm" style="border-color:var(--danger);color:var(--danger);padding:3px 8px;" onclick="deleteCostType(\''+t.id+'\')" title="Eliminar"><i class="ti ti-trash" style="vertical-align:-2px;"></i></button>'+
+      '</div>';
+    }).join('');
+    return '<div style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:12px 14px;margin-bottom:10px;">'+
+      '<div style="font-weight:800;color:var(--neon3);font-size:13px;margin-bottom:8px;">'+escH(p.name)+'</div>'+
+      (rows||'<div style="font-size:12px;color:var(--text-dim);padding:4px 0 8px;">Sin tipos de factura</div>')+
+      '<div style="display:flex;align-items:center;gap:8px;flex-wrap:wrap;padding-top:8px;border-top:1px dashed var(--border);">'+
+        '<input id="ct-new-name-'+p.id+'" type="text" placeholder="Nuevo tipo (ej: Factura de tarjeta)" style="'+inpS+'color:var(--text-bright);width:220px;">'+
+        '<span style="color:var(--text-dim);font-size:12px;">$</span>'+
+        '<input id="ct-new-val-'+p.id+'" type="number" min="0" step="0.01" placeholder="0.00" style="'+inpS+'width:90px;">'+
+        '<button class="btn btn-primary btn-sm" onclick="addCostType(\''+p.id+'\')"><i class="ti ti-plus" style="vertical-align:-2px;"></i> Agregar</button>'+
+      '</div></div>';
+  }).join('');
+}
+// Selector de tipo de factura en el formulario de cuenta
+function refreshCostTypeSelect(selectedId){
+  var sel=document.getElementById('a-costtype'); if(!sel) return;
+  var platId=document.getElementById('a-platform').value;
+  var types=getCostTypes().filter(function(t){return t.platId===platId;});
+  sel.innerHTML='<option value="">Manual (escribir costo)</option>'+types.map(function(t){
+    return '<option value="'+t.id+'">'+escH(t.name)+' — $ '+(parseFloat(t.value)||0).toFixed(2)+'</option>';}).join('');
+  sel.value=(selectedId&&types.some(function(t){return t.id===selectedId;}))?selectedId:'';
+  onCostTypeChange();
+}
+function onCostTypeChange(){
+  var sel=document.getElementById('a-costtype'), inp=document.getElementById('a-cost'), hint=document.getElementById('a-cost-hint');
+  if(!sel||!inp) return;
+  var t=sel.value?getCostTypes().find(function(x){return x.id===sel.value;}):null;
+  inp.style.display=t?'none':'';
+  if(hint){ hint.style.display=t?'':'none'; hint.textContent=t?('Costo: $ '+(parseFloat(t.value)||0).toFixed(2)+' (se actualiza desde Finanzas → Costos de cuentas)'):''; }
+}
 var financeTab='costs';
 function switchFinanceTab(tab){
   financeTab=tab;
-  document.querySelectorAll('#finance-tabs .tab').forEach(function(t,i){t.classList.toggle('active',['costs','rates','income'][i]===tab);});
+  document.querySelectorAll('#finance-tabs .tab').forEach(function(t,i){t.classList.toggle('active',['costs','costtypes','rates','income'][i]===tab);});
   document.getElementById('finance-tab-costs').style.display=tab==='costs'?'':'none';
+  document.getElementById('finance-tab-costtypes').style.display=tab==='costtypes'?'':'none';
   document.getElementById('finance-tab-rates').style.display=tab==='rates'?'':'none';
   document.getElementById('finance-tab-income').style.display=tab==='income'?'':'none';
 }
@@ -3478,9 +3578,9 @@ function renderFinance(){
   // ── Costos: leer campo 'cost' de cada cuenta ─────────────────────────────
   var totalCost=0, costRows=[];
   DB.accounts.forEach(function(a){
-    if(!a.cost||parseFloat(a.cost)<=0) return;
+    if(getAccCost(a)<=0) return;
     var p=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?'};
-    var cost=parseFloat(a.cost);
+    var cost=getAccCost(a);
     totalCost+=cost;
     var typeLbl=a.type==='complete'?'Completa':a.type==='email'?'Por correo':'Por perfil';
     costRows.push({name:p.name+' ('+escH(a.email)+')',type:typeLbl,cost:cost});
@@ -3525,6 +3625,7 @@ function renderFinance(){
   incomeRows.forEach(function(r){ totalIncome+=r.price||0; });
   // ── Renderizar tarifas ────────────────────────────────────────────────────
   renderRates();
+  renderCostTypes();
   // ── Stats ─────────────────────────────────────────────────────────────────
   var balance=totalIncome-totalCost;
   var margin=totalIncome>0?(balance/totalIncome*100):0;
@@ -3551,7 +3652,7 @@ function renderFinance(){
     var byPlat={};
     function g(n){ return byPlat[n]||(byPlat[n]={name:n,cost:0,inc:0}); }
     DB.accounts.forEach(function(a){
-      var c=parseFloat(a.cost)||0; if(c<=0) return;
+      var c=getAccCost(a); if(c<=0) return;
       var pl=DB.platforms.find(function(x){return x.id===a.platformId;})||{name:'?'};
       g(pl.name).cost+=c;
     });
