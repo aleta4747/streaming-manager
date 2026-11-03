@@ -693,9 +693,9 @@ select option{background:var(--panel2);}
         <div class="sec-hd"><div class="sec-title"><i class="ti ti-coin" style="vertical-align:-2px;"></i> Finanzas</div></div>
         <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:12px;margin-bottom:14px;" id="finance-stats"></div>
         <div id="finance-balance-bar" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:14px 18px;margin-bottom:24px;"></div>
-        <div id="finance-chart" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:16px 18px;margin-bottom:24px;"></div>
         <div class="tabs" id="finance-tabs">
           <div class="tab active" onclick="switchFinanceTab('costs')"><i class="ti ti-download" style="vertical-align:-2px;"></i> Costos</div>
+          <div class="tab" onclick="switchFinanceTab('charts')"><i class="ti ti-chart-bar" style="vertical-align:-2px;"></i> Gráficas de plataformas</div>
           <div class="tab" onclick="switchFinanceTab('costtypes')"><i class="ti ti-receipt" style="vertical-align:-2px;"></i> Costos de cuentas</div>
           <div class="tab" onclick="switchFinanceTab('rates')"><i class="ti ti-cash" style="vertical-align:-2px;"></i> Tarifas</div>
           <div class="tab" onclick="switchFinanceTab('income')"><i class="ti ti-package" style="vertical-align:-2px;"></i> Ingresos</div>
@@ -706,6 +706,9 @@ select option{background:var(--panel2);}
             <input id="finance-costs-search" type="text" placeholder="Buscar cuenta..." oninput="renderFinance()" style="background:var(--panel2);border:1px solid var(--border);border-radius:4px;padding:6px 12px;font-size:12px;color:var(--text);font-family:Share Tech Mono,monospace;width:200px;">
           </div>
           <div id="finance-costs"></div>
+        </div>
+        <div id="finance-tab-charts" class="finance-tabpanel" style="display:none;">
+          <div style="margin-top:14px;"><div id="finance-chart" style="background:var(--panel2);border:1px solid var(--border);border-radius:6px;padding:16px 18px;"></div></div>
         </div>
         <div id="finance-tab-costtypes" class="finance-tabpanel" style="display:none;">
           <div class="sec-hd" style="margin:14px 0 10px;"><div class="sec-title" style="font-size:13px;"><i class="ti ti-receipt" style="vertical-align:-2px;"></i> Costos de cuentas por tipo de factura</div></div>
@@ -3568,8 +3571,9 @@ function onCostTypeChange(){
 var financeTab='costs';
 function switchFinanceTab(tab){
   financeTab=tab;
-  document.querySelectorAll('#finance-tabs .tab').forEach(function(t,i){t.classList.toggle('active',['costs','costtypes','rates','income'][i]===tab);});
+  document.querySelectorAll('#finance-tabs .tab').forEach(function(t,i){t.classList.toggle('active',['costs','charts','costtypes','rates','income'][i]===tab);});
   document.getElementById('finance-tab-costs').style.display=tab==='costs'?'':'none';
+  document.getElementById('finance-tab-charts').style.display=tab==='charts'?'':'none';
   document.getElementById('finance-tab-costtypes').style.display=tab==='costtypes'?'':'none';
   document.getElementById('finance-tab-rates').style.display=tab==='rates'?'':'none';
   document.getElementById('finance-tab-income').style.display=tab==='income'?'':'none';
