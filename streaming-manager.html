@@ -1283,7 +1283,23 @@ async function driveUpload(){
     var existing = await driveFindFile();
     var url, method;
     if(existing){
-      url = 'https://www.googleapis.com/upload/drive/v3/files/'+existing.id+'?uploadType=media';
+      // Protección: ¿Drive tiene una versión más nueva que la última sincronización de este dispositivo?
+      var lastSync = null;
+      try{ lastSync = localStorage.getItem('sag8_drive_lastsync'); }catch(e){}
+      var driveMod = new Date(existing.modifiedTime).getTime();
+      var newer = !lastSync || driveMod > new Date(lastSync).getTime() + 2000;
+      if(newer){
+        var when = new Date(existing.modifiedTime).toLocaleString();
+        var msg = lastSync
+          ? '⚠️ Drive tiene una versión más nueva ('+when+') que la última que sincronizaste en este dispositivo.\n\nSi subes ahora, se sobrescribirán esos cambios.\n\n¿Subir de todas formas?'
+          : '⚠️ Ya existe un archivo en Drive ('+when+') y este dispositivo no ha sincronizado antes con él.\n\nSi subes ahora, se sobrescribirá.\n\n¿Subir de todas formas?';
+        if(!confirm(msg)){
+          driveSetStatus('Subida cancelada','var(--warn)');
+          if(confirm('¿Quieres bajar primero los datos de Drive?')) driveDownload();
+          return;
+        }
+      }
+      url = 'https://www.googleapis.com/upload/drive/v3/files/'+existing.id+'?uploadType=media&fields=modifiedTime';
       method = 'PATCH';
     } else {
       // Crear nuevo
@@ -1293,13 +1309,14 @@ async function driveUpload(){
         body: JSON.stringify({name:DRIVE_FILE_NAME,mimeType:'application/json'})
       });
       var metaData = await meta.json();
-      url = 'https://www.googleapis.com/upload/drive/v3/files/'+metaData.id+'?uploadType=media';
+      url = 'https://www.googleapis.com/upload/drive/v3/files/'+metaData.id+'?uploadType=media&fields=modifiedTime';
       method = 'PATCH';
     }
     var upSize = blob.size;
     driveProgShow('SUBIENDO A DRIVE');
     driveSetStatus('Subiendo...');
-    await driveXhr(method,url,{Authorization:'Bearer '+_driveToken,'Content-Type':'application/json'},blob,'up',upSize);
+    var upResp = await driveXhr(method,url,{Authorization:'Bearer '+_driveToken,'Content-Type':'application/json'},blob,'up',upSize);
+    try{ var mt=JSON.parse(upResp).modifiedTime; if(mt) localStorage.setItem('sag8_drive_lastsync',mt); }catch(e){}
     driveProgHide();
     driveSetStatus('✓ Subido a Drive correctamente — '+todayStrVE()+' '+new Date().toLocaleTimeString(),'var(--success)');
     toast('Datos subidos a Drive','success');
@@ -1330,7 +1347,7 @@ async function driveDownload(){
     // Detectar conflicto
     var localJson = JSON.stringify(DB);
     var driveJson = JSON.stringify(data);
-    if(localJson===driveJson){ driveSetStatus('✓ Ya estás sincronizado','var(--success)'); return; }
+    if(localJson===driveJson){ try{localStorage.setItem('sag8_drive_lastsync',file.modifiedTime);}catch(e){} driveSetStatus('✓ Ya estás sincronizado','var(--success)'); return; }
     var choice = confirm(
       '⚠️ Los datos son diferentes.\n\n'+
       'Drive: modificado el '+driveStr+'\n'+
@@ -1341,6 +1358,7 @@ async function driveDownload(){
     DB = data;
     if(!DB.trash) DB.trash=[];
     saveDB(); updateCounts(); renderDashboard();
+    try{localStorage.setItem('sag8_drive_lastsync',file.modifiedTime);}catch(e){}
     driveSetStatus('✓ Datos de Drive cargados correctamente','var(--success)');
     toast('Datos sincronizados desde Drive','success');
   } catch(e){
@@ -3423,7 +3441,9 @@ function getAvailItems(){
 
 // Tarifas guardadas por plataforma: { platId: { profile_client, profile_reseller, complete_client, complete_reseller, email_client, email_reseller } }
 function loadAllRates(){
-  try{var s=localStorage.getItem('sag8_rates2');if(s)return JSON.parse(s);}catch(e){}
+  // Las tarifas viven dentro de DB (se sincronizan con Drive). Migra las antiguas de localStorage.
+  if(DB.rates) return DB.rates;
+  try{var s=localStorage.getItem('sag8_rates2');if(s){ DB.rates=JSON.parse(s); saveDB(); return DB.rates; }}catch(e){}
   return {};
 }
 function getRatesForPlat(platId){
@@ -3446,7 +3466,7 @@ function saveRates(){
       emailsingle_reseller: parseFloat(document.getElementById('rate-'+pid+'-emailsingle-reseller').value)||0,
     };
   });
-  try{localStorage.setItem('sag8_rates2',JSON.stringify(all));}catch(e){}
+  DB.rates=all; saveDB();
   renderFinance();
   toast('Tarifas guardadas','success');
 }
